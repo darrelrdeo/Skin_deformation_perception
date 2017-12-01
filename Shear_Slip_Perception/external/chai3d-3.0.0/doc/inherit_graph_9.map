@@ -1,0 +1,5 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classchai3d_1_1c_generic_collision.html" title="cGenericCollision is an abstract class for implementing collision&#45;detection algorithms between object..." alt="" coords="5,31,175,57"/>
+<area shape="rect" id="node2" href="$classchai3d_1_1c_collision_a_a_b_b.html" title="Collision detector &#45; Axis aligned bounding box. " alt="" coords="223,5,383,32"/>
+<area shape="rect" id="node3" href="$classchai3d_1_1c_collision_brute.html" title="Collision detector &#45; Brute force. " alt="" coords="225,56,380,83"/>
+</map>

@@ -1,0 +1,432 @@
+﻿  dev2gif.c
+  dgif_lib.c
+  egif_lib.c
+  getarg.c
+  gifalloc.c
+  gif_err.c
+  gif_font.c
+  gif_hash.c
+  qprintf.c
+  quantize.c
+  glew.c
+  lib3ds_atmosphere.c
+  lib3ds_background.c
+  lib3ds_camera.c
+  lib3ds_chunk.c
+  lib3ds_chunktable.c
+  lib3ds_file.c
+  lib3ds_io.c
+  lib3ds_light.c
+  lib3ds_material.c
+  lib3ds_math.c
+  lib3ds_matrix.c
+  lib3ds_mesh.c
+  lib3ds_node.c
+  lib3ds_quat.c
+  lib3ds_shadow.c
+  lib3ds_track.c
+  lib3ds_util.c
+  lib3ds_vector.c
+  lib3ds_viewport.c
+  jaricom.c
+  jcapimin.c
+  jcapistd.c
+  jcarith.c
+  jccoefct.c
+  jccolor.c
+  jcdctmgr.c
+  jchuff.c
+  jcinit.c
+  jcmainct.c
+  jcmarker.c
+  jcmaster.c
+  jcomapi.c
+  jcparam.c
+  jcprepct.c
+  jcsample.c
+  jctrans.c
+  jdapimin.c
+  jdapistd.c
+  jdarith.c
+  jdatadst.c
+  jdatasrc.c
+  jdcoefct.c
+  jdcolor.c
+  jddctmgr.c
+  jdhuff.c
+  jdinput.c
+  jdmainct.c
+  jdmarker.c
+  jdmaster.c
+  jdmerge.c
+  jdpostct.c
+  jdsample.c
+  jdtrans.c
+  jerror.c
+  jfdctflt.c
+  jfdctfst.c
+  jfdctint.c
+  jidctflt.c
+  jidctfst.c
+  jidctint.c
+  jmemansi.c
+  jmemmgr.c
+  jmemnobs.c
+  jquant1.c
+  jquant2.c
+  jutils.c
+  adler32.c
+  compress.c
+  crc32.c
+  deflate.c
+  gzclose.c
+  gzlib.c
+  gzread.c
+  gzwrite.c
+  infback.c
+  inffast.c
+  inflate.c
+  inftrees.c
+  png.c
+  pngerror.c
+  pngget.c
+  pngmem.c
+  pngpread.c
+  pngread.c
+  pngrio.c
+  pngrtran.c
+  pngrutil.c
+  pngset.c
+  pngtest.c
+  pngtrans.c
+  pngwio.c
+  pngwrite.c
+  pngwtran.c
+  pngwutil.c
+  trees.c
+  uncompr.c
+  zutil.c
+  ALc.c
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\ALc.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\ALc.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+  alcConfig.c
+  alcDedicated.c
+  alcEcho.c
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\alcEcho.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\alcEcho.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\alcConfig.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\alcConfig.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\alcDedicated.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\alcDedicated.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+  alcModulator.c
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\alcModulator.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\alcModulator.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+  alcReverb.c
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\alcReverb.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\alcReverb.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+  alcRing.c
+  alcThread.c
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\alcRing.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\alcRing.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+  ALu.c
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\ALu.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\ALu.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\alcThread.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\alcThread.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+  dsound.c
+  loopback.c
+  mmdevapi.c
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\backends\loopback.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\backends\loopback.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+  null.c
+  wave.c
+  winmm.c
+  bs2b.c
+  helpers.c
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\backends\mmdevapi.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\backends\mmdevapi.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\bs2b.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\bs2b.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\backends\dsound.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\backends\dsound.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+  hrtf.c
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\backends\wave.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\backends\wave.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\backends\null.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\backends\null.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\hrtf.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\hrtf.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+  mixer.c
+  mixer_c.c
+  mixer_sse.c
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\mixer.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\mixer.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\backends\winmm.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\backends\winmm.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\mixer_c.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\mixer_c.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\mixer_sse.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\mixer_sse.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+  panning.c
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\panning.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\panning.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+  alAuxEffectSlot.c
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\OpenAL32\alAuxEffectSlot.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\OpenAL32\alAuxEffectSlot.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\helpers.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\helpers.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\mixer_c.c)
+          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287) : see previous definition of 'isfinite'
+E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\mixer_c.c)
+          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289) : see previous definition of 'isnan'
+E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17): warning C4005: 'isfinite' : macro redefinition (external\openal\Alc\mixer_sse.c)
+          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287) : see previous definition of 'isfinite'
+E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18): warning C4005: 'isnan' : macro redefinition (external\openal\Alc\mixer_sse.c)
+          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289) : see previous definition of 'isnan'
+  alBuffer.c
+  alEffect.c
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\OpenAL32\alEffect.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\OpenAL32\alEffect.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\OpenAL32\alBuffer.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\OpenAL32\alBuffer.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+  alError.c
+  alExtension.c
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\OpenAL32\alError.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\OpenAL32\alError.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\OpenAL32\alExtension.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\OpenAL32\alExtension.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+  alFilter.c
+  alListener.c
+  alSource.c
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\OpenAL32\alSource.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\OpenAL32\alSource.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\OpenAL32\alListener.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\OpenAL32\alListener.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\OpenAL32\alFilter.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\OpenAL32\alFilter.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+  alState.c
+  alThunk.c
+  bitwise.c
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\OpenAL32\alThunk.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\OpenAL32\alThunk.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(287): warning C4005: 'isfinite' : macro redefinition (external\openal\OpenAL32\alState.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(17) : see previous definition of 'isfinite'
+C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\include\math.h(289): warning C4005: 'isnan' : macro redefinition (external\openal\OpenAL32\alState.c)
+          E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\openal\include\alConfig.h(18) : see previous definition of 'isnan'
+  framing.c
+  analyze.c
+  apiwrapper.c
+  bitpack.c
+  collect.c
+  decapiwrapper.c
+  decinfo.c
+  decode.c
+  dequant.c
+  encapiwrapper.c
+  encfrag.c
+  encinfo.c
+  encode.c
+  encoder_disabled.c
+  enquant.c
+  fdct.c
+  fragment.c
+  huffdec.c
+  huffenc.c
+  idct.c
+  infot.c
+  internal.c
+  mathops.c
+  mcenc.c
+  quant.c
+  rate.c
+  state.c
+  tokenize.c
+  mmxencfrag.c
+  mmxfdct.c
+  mmxfrag.c
+  mmxidct.c
+  mmxstate.c
+  x86cpu.c
+  x86enc.c
+  x86state.c
+  analysis.c
+  bitrate.c
+  block.c
+  codebook.c
+  envelope.c
+  floor0.c
+  floor1.c
+  info.c
+  lookup.c
+  lpc.c
+  lsp.c
+  mapping0.c
+  mdct.c
+  psy.c
+  registry.c
+  res0.c
+  sharedbook.c
+  smallft.c
+  synthesis.c
+  vorbisenc.c
+  vorbisfile.c
+  window.c
+  yuv420_grey_c.c
+  yuv420_rgb_c.c
+  yuv420_yuv_c.c
+  yuv_c.c
+  OpenAL_AudioInterface.cpp
+  TheoraAsync.cpp
+  TheoraAudioInterface.cpp
+  TheoraAudioPacketQueue.cpp
+  TheoraDataSource.cpp
+  TheoraException.cpp
+  TheoraFrameQueue.cpp
+  TheoraTimer.cpp
+  TheoraUtil.cpp
+  TheoraVideoClip.cpp
+  TheoraVideoFrame.cpp
+  TheoraVideoManager.cpp
+  TheoraWorkerThread.cpp
+  TheoraVideoClip_Theora.cpp
+  CCollisionAABB.cpp
+  CCollisionAABBTree.cpp
+  CCollisionBrute.cpp
+  CGenericCollision.cpp
+  CDeltaDevices.cpp
+  CGenericDevice.cpp
+  CGenericHapticDevice.cpp
+  CHapticDeviceHandler.cpp
+  CMyCustomDevice.cpp
+  CPhantomDevices.cpp
+  CSixenseDevices.cpp
+  CCamera.cpp
+  CEffectMagnet.cpp
+  CEffectStickSlip.cpp
+  CEffectSurface.cpp
+  CEffectVibration.cpp
+  CEffectViscosity.cpp
+  CGenericEffect.cpp
+  CFileImageBMP.cpp
+  CFileImageGIF.cpp
+  CFileImageJPG.cpp
+  CFileImagePNG.cpp
+  CFileImagePPM.cpp
+  CFileImageRAW.cpp
+  CFileModel3DS.cpp
+  CFileModelOBJ.cpp
+  CAlgorithmFingerProxy.cpp
+  CAlgorithmPotentialField.cpp
+  CGenericForceAlgorithm.cpp
+  CColor.cpp
+  CDisplayList.cpp
+  CDraw3D.cpp
+e:\darrel\braingate_skin_deformation_perception\shear_slip_perception\external\chai3d-3.0.0\src\forces\calgorithmfingerproxy.cpp(1415): warning C4715: 'chai3d::cAlgorithmFingerProxy::computeProxy' : not all control paths return a value
+  CFog.cpp
+  CFont.cpp
+  CImage.cpp
+  CPrimitives.cpp
+  CTriangleArray.cpp
+  CVideo.cpp
+  CDirectionalLight.cpp
+  CGenericLight.cpp
+  CPositionalLight.cpp
+  CShadowMap.cpp
+  CSpotLight.cpp
+  CMaterial.cpp
+  CNormalMap.cpp
+  CTexture1d.cpp
+  CTexture2d.cpp
+  CTextureVideo.cpp
+  CShader.cpp
+  CShaderProgram.cpp
+  CGlobals.cpp
+  CMutex.cpp
+  CString.cpp
+  CThread.cpp
+  CFrequencyCounter.cpp
+  CPrecisionClock.cpp
+  CGenericTool.cpp
+  CHapticPoint.cpp
+  CToolCursor.cpp
+  CToolGripper.cpp
+  CBackground.cpp
+  CBitmap.cpp
+  CDial.cpp
+  CGenericWidget.cpp
+  CLabel.cpp
+  CLevel.cpp
+  CPanel.cpp
+  CScope.cpp
+  CGenericObject.cpp
+  CMesh.cpp
+  CMultiMesh.cpp
+  CShapeBox.cpp
+  CShapeCylinder.cpp
+  CShapeLine.cpp
+  CShapeSphere.cpp
+  CShapeTorus.cpp
+  CWorld.cpp
+  CHAI3D-VS2013.vcxproj -> E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\lib/Release/x64\chai3d.lib

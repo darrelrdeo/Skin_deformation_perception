@@ -1,0 +1,7 @@
+<map id="chai3d::cGenericDevice" name="chai3d::cGenericDevice">
+<area shape="rect" id="node2" href="$classchai3d_1_1c_generic_haptic_device.html" title="Abstract class for haptic and tracking devices. " alt="" coords="212,81,407,108"/>
+<area shape="rect" id="node3" href="$classchai3d_1_1c_delta_device.html" title="Interface to Force Dimension haptic devices. " alt="" coords="471,5,614,32"/>
+<area shape="rect" id="node4" href="$classchai3d_1_1c_my_custom_device.html" title="Interface to custom haptic devices (template). " alt="" coords="455,56,631,83"/>
+<area shape="rect" id="node5" href="$classchai3d_1_1c_phantom_device.html" title="Interface to Sensable/Geomagic Phantom haptic devices. " alt="" coords="460,107,625,133"/>
+<area shape="rect" id="node6" href="$classchai3d_1_1c_sixense_device.html" title="Interface to Sixsense tracking devices. " alt="" coords="463,157,623,184"/>
+</map>

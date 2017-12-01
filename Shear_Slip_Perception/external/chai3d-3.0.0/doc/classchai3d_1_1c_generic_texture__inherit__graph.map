@@ -1,0 +1,5 @@
+<map id="chai3d::cGenericTexture" name="chai3d::cGenericTexture">
+<area shape="rect" id="node2" href="$classchai3d_1_1c_texture1d.html" title="1D Texture Map " alt="" coords="21,80,153,107"/>
+<area shape="rect" id="node3" href="$classchai3d_1_1c_texture2d.html" title="2D Texture Map " alt="" coords="21,155,153,181"/>
+<area shape="rect" id="node4" href="$classchai3d_1_1c_shadow_map.html" title="Shadow map for Spot light. " alt="" coords="13,229,160,256"/>
+</map>

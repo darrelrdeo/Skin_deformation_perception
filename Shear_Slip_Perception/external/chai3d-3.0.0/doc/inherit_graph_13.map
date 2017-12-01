@@ -1,0 +1,6 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classchai3d_1_1c_generic_texture.html" title="Abstract class for textures. " alt="" coords="5,5,168,32"/>
+<area shape="rect" id="node2" href="$classchai3d_1_1c_texture1d.html" title="1D Texture Map " alt="" coords="216,5,348,32"/>
+<area shape="rect" id="node3" href="$classchai3d_1_1c_texture2d.html" title="2D Texture Map " alt="" coords="396,5,528,32"/>
+<area shape="rect" id="node4" href="$classchai3d_1_1c_shadow_map.html" title="Shadow map for Spot light. " alt="" coords="576,5,723,32"/>
+</map>

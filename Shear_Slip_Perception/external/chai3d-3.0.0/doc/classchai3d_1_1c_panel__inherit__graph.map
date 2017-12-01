@@ -1,0 +1,10 @@
+<map id="chai3d::cPanel" name="chai3d::cPanel">
+<area shape="rect" id="node6" href="$classchai3d_1_1c_bitmap.html" title="2D Widget Bitmap. " alt="" coords="19,379,135,405"/>
+<area shape="rect" id="node8" href="$classchai3d_1_1c_label.html" title="2D Widget Label. " alt="" coords="160,379,267,405"/>
+<area shape="rect" id="node9" href="$classchai3d_1_1c_scope.html" title="2D Widget Scope. " alt="" coords="291,379,403,405"/>
+<area shape="rect" id="node2" href="$classchai3d_1_1c_generic_widget.html" title="Abstract class for 2D widgets. " alt="" coords="133,229,294,256"/>
+<area shape="rect" id="node3" href="$classchai3d_1_1c_mesh.html" title="3D Mesh object " alt="" coords="160,155,267,181"/>
+<area shape="rect" id="node4" href="$classchai3d_1_1c_generic_object.html" title="Abstract class for virtual 3D objects. " alt="" coords="134,80,293,107"/>
+<area shape="rect" id="node5" href="$classchai3d_1_1c_generic_type.html" title="Abstract type. " alt="" coords="139,5,287,32"/>
+<area shape="rect" id="node7" href="$classchai3d_1_1c_background.html" title="2D Widget Background. " alt="" coords="5,453,149,480"/>
+</map>
