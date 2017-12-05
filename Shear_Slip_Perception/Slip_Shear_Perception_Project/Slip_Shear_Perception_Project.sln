@@ -1,0 +1,69 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2006
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Slip_Shear_Perception_Project", "Slip_Shear_Perception_Project\Slip_Shear_Perception_Project.vcxproj", "{47A3CD84-5E2E-40E7-94AF-91D64ECC910F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A9F01342-5463-4634-B1F9-BF98CD5591B0} = {A9F01342-5463-4634-B1F9-BF98CD5591B0}
+		{71AF75A0-52B6-4C1B-8E56-CB31C6741A18} = {71AF75A0-52B6-4C1B-8E56-CB31C6741A18}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CHAI3D", "C:\Users\Darrel\Documents\Haptic_BMI_Noise_Project\Haptic_BMI_Noise_2\external\chai3d-3.0.0\CHAI3D-VS2010.vcxproj", "{A9F01342-5463-4634-B1F9-BF98CD5591B0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "freeglut", "C:\Users\Darrel\Documents\Haptic_BMI_Noise_Project\Haptic_BMI_Noise_2\external\chai3d-3.0.0\extras\freeglut\freeglut-VS2010.vcxproj", "{71AF75A0-52B6-4C1B-8E56-CB31C6741A18}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{47A3CD84-5E2E-40E7-94AF-91D64ECC910F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{47A3CD84-5E2E-40E7-94AF-91D64ECC910F}.Debug|Win32.Build.0 = Debug|Win32
+		{47A3CD84-5E2E-40E7-94AF-91D64ECC910F}.Debug|x64.ActiveCfg = Debug|Win32
+		{47A3CD84-5E2E-40E7-94AF-91D64ECC910F}.Debug|x64.Build.0 = Debug|Win32
+		{47A3CD84-5E2E-40E7-94AF-91D64ECC910F}.Debug|x86.ActiveCfg = Debug|Win32
+		{47A3CD84-5E2E-40E7-94AF-91D64ECC910F}.Debug|x86.Build.0 = Debug|Win32
+		{47A3CD84-5E2E-40E7-94AF-91D64ECC910F}.Release|Win32.ActiveCfg = Release|Win32
+		{47A3CD84-5E2E-40E7-94AF-91D64ECC910F}.Release|Win32.Build.0 = Release|Win32
+		{47A3CD84-5E2E-40E7-94AF-91D64ECC910F}.Release|x64.ActiveCfg = Release|x64
+		{47A3CD84-5E2E-40E7-94AF-91D64ECC910F}.Release|x64.Build.0 = Release|x64
+		{47A3CD84-5E2E-40E7-94AF-91D64ECC910F}.Release|x86.ActiveCfg = Release|Win32
+		{47A3CD84-5E2E-40E7-94AF-91D64ECC910F}.Release|x86.Build.0 = Release|Win32
+		{A9F01342-5463-4634-B1F9-BF98CD5591B0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A9F01342-5463-4634-B1F9-BF98CD5591B0}.Debug|Win32.Build.0 = Debug|Win32
+		{A9F01342-5463-4634-B1F9-BF98CD5591B0}.Debug|x64.ActiveCfg = Debug|x64
+		{A9F01342-5463-4634-B1F9-BF98CD5591B0}.Debug|x64.Build.0 = Debug|x64
+		{A9F01342-5463-4634-B1F9-BF98CD5591B0}.Debug|x86.ActiveCfg = Debug|Win32
+		{A9F01342-5463-4634-B1F9-BF98CD5591B0}.Debug|x86.Build.0 = Debug|Win32
+		{A9F01342-5463-4634-B1F9-BF98CD5591B0}.Release|Win32.ActiveCfg = Release|Win32
+		{A9F01342-5463-4634-B1F9-BF98CD5591B0}.Release|Win32.Build.0 = Release|Win32
+		{A9F01342-5463-4634-B1F9-BF98CD5591B0}.Release|x64.ActiveCfg = Release|x64
+		{A9F01342-5463-4634-B1F9-BF98CD5591B0}.Release|x64.Build.0 = Release|x64
+		{A9F01342-5463-4634-B1F9-BF98CD5591B0}.Release|x86.ActiveCfg = Release|Win32
+		{A9F01342-5463-4634-B1F9-BF98CD5591B0}.Release|x86.Build.0 = Release|Win32
+		{71AF75A0-52B6-4C1B-8E56-CB31C6741A18}.Debug|Win32.ActiveCfg = Debug|Win32
+		{71AF75A0-52B6-4C1B-8E56-CB31C6741A18}.Debug|Win32.Build.0 = Debug|Win32
+		{71AF75A0-52B6-4C1B-8E56-CB31C6741A18}.Debug|x64.ActiveCfg = Debug|x64
+		{71AF75A0-52B6-4C1B-8E56-CB31C6741A18}.Debug|x64.Build.0 = Debug|x64
+		{71AF75A0-52B6-4C1B-8E56-CB31C6741A18}.Debug|x86.ActiveCfg = Debug|Win32
+		{71AF75A0-52B6-4C1B-8E56-CB31C6741A18}.Debug|x86.Build.0 = Debug|Win32
+		{71AF75A0-52B6-4C1B-8E56-CB31C6741A18}.Release|Win32.ActiveCfg = Release|Win32
+		{71AF75A0-52B6-4C1B-8E56-CB31C6741A18}.Release|Win32.Build.0 = Release|Win32
+		{71AF75A0-52B6-4C1B-8E56-CB31C6741A18}.Release|x64.ActiveCfg = Release|x64
+		{71AF75A0-52B6-4C1B-8E56-CB31C6741A18}.Release|x64.Build.0 = Release|x64
+		{71AF75A0-52B6-4C1B-8E56-CB31C6741A18}.Release|x86.ActiveCfg = Release|Win32
+		{71AF75A0-52B6-4C1B-8E56-CB31C6741A18}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7FF1772C-5083-4B6E-B01E-72182512245A}
+	EndGlobalSection
+EndGlobal
