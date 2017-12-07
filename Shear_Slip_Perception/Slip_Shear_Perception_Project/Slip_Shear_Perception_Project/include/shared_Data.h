@@ -9,16 +9,17 @@
 #include "../../../external/chai3d-3.0.0/src/chai3d.h"
 #include "NIDAQcommands.h"
 #include "NIDAQmx.h"
-
+#include "cForceSensor.h"
+#include "cATIForceSensor.h"
 #include <stdint.h>
 
 using namespace chai3d;
 using namespace std;
 
+
 // Operation Mode
 #define DEMO		0
 #define EXPERIMENT	1
-
 
 // Input devices
 #define INPUT_PHANTOM		1
@@ -27,6 +28,10 @@ using namespace std;
 // Output devcies
 #define OUTPUT_PHANTOM		1
 #define OUTPUT_DELTA		2
+
+// Force Sensing
+#define FS_CALIB "C:\\CalibrationFiles\\FT11287.cal"
+#define FS_INIT  "Dev1/ai0:5"
 
 // Experiment States
 #define START_UP	0
@@ -39,7 +44,9 @@ using namespace std;
 
 // Demo States
 #define START_UP_DEMO			 7
+#define FORCE_SENSOR_TESTING_DEMO	13
 #define SET_ZERO_POINT_DEMO		 8
+#define HOLD_ZERO_POINT_DEMO	 12
 #define INPUT_PROMPT_DEMO		 9
 #define DISPLAYING_FORCE_DEMO	 10
 #define RAMP_DOWN_FORCE_DEMO	 11
@@ -106,6 +113,9 @@ typedef struct {
 	double d_outputPhantomForce_X;
 	double d_outputPhantomForce_Y;
 	double d_outputPhantomForce_Z;
+
+	// Force Sensor
+	double d_force[3];
 
 	// Joystick State
 	double d_joystickPosX;
@@ -186,6 +196,12 @@ typedef struct {
 	double cursorVelY;
 	double cursorVelZ;
 
+	// sensing
+	bool sensing;
+	cForceSensor g_ForceSensor;
+	double force[3];
+
+
 	// Timers for simulation/experiment
 	cPrecisionClock* timer;
 
@@ -241,6 +257,9 @@ typedef struct {
 	double outputPhantomForce_X;
 	double outputPhantomForce_Y;
 	double outputPhantomForce_Z;
+
+	//  Output Phantom zero force flag for safety
+	bool ZeroPhantomForce_FLAG;
 
 	// Joystick State
 	double joystickPosX;

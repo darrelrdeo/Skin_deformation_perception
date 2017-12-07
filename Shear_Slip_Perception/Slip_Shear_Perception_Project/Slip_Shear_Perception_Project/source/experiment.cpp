@@ -36,9 +36,17 @@ static const int relax_to_trial_time = 2;       // Message prompt in seconds bef
 static const int numberOfBlocks = 2;
 
 
+// private vector to hold phantom GetForce (should move to p_Shared)
+static cVector3d phantomForce(0, 0, 0);
+
 // Demo Loop Params
 bool demo_start = true;
 DWORD dbouncer = 0;
+
+// zero holding
+double KP = 10;
+cVector3d position(0, 0, 0);
+cVector3d force(0, 0, 0);
 
 // File params
 static int subjectNum;           // subject number
@@ -469,12 +477,37 @@ void updateExperiment(void) {
 /**********************************************************************************/
 				case START_UP_DEMO :
 					// prompt user to define zero location
-					p_sharedData->message = "Please set a zero location. ";
+					p_sharedData->message = "Waiting on Keypress to select next State ";
 					p_sharedData->demoStateName = "START UP DEMO";
 					// key press in graphics thread will send state machine to next state once zero location set
 
 				break;
 /**********************************************************************************/
+
+
+				case FORCE_SENSOR_TESTING_DEMO:
+
+					// set demoState number and name
+					p_sharedData->demoStateName = "Force Sensor Testing";
+
+					// obtain force sensor reading
+					// if sensing, measure XYZ finger force
+					if (p_sharedData->sensing) {
+						int n = p_sharedData->g_ForceSensor.AcquireFTData();  // integer output indicates success/failure
+						p_sharedData->g_ForceSensor.GetForceReading(p_sharedData->force);
+					}
+
+					// obtain phantom premium GetForce
+
+					p_sharedData->p_output_Phantom->getForce(phantomForce);
+					p_sharedData->outputPhantomForce_X = phantomForce.x();
+					p_sharedData->outputPhantomForce_Y = phantomForce.y();
+					p_sharedData->outputPhantomForce_Z = phantomForce.z();
+
+					break;
+/**********************************************************************************/
+
+
 
 				case INPUT_PROMPT_DEMO : 
 
@@ -489,10 +522,10 @@ void updateExperiment(void) {
 					p_sharedData->inputPhantomPosZ = input_pos.z();
 					
 					// Desired force output
-					float forceScalar = 10;
-					p_sharedData->outputPhantomForce_Desired_X = forceScalar*p_sharedData->cursorPosX;
-					p_sharedData->outputPhantomForce_Desired_Y = forceScalar*p_sharedData->cursorPosY;
-					p_sharedData->outputPhantomForce_Desired_Z = forceScalar*p_sharedData->cursorPosZ;
+
+					p_sharedData->outputPhantomForce_Desired_X = 10*p_sharedData->cursorPosX;
+					p_sharedData->outputPhantomForce_Desired_Y = 10*p_sharedData->cursorPosY;
+					p_sharedData->outputPhantomForce_Desired_Z = 10*p_sharedData->cursorPosZ;
 
 
 				break;
@@ -501,7 +534,21 @@ void updateExperiment(void) {
 
 
 /**********************************************************************************/
+				case HOLD_ZERO_POINT_DEMO :
+					
+					//read position of haptic device
+					p_sharedData->p_output_Phantom->getPosition(position);
 
+					// obtain desired force for spring control
+					force = -1*KP*position;
+
+					//send force to hapic device
+					p_sharedData->p_output_Phantom->setForce(force);
+
+					
+
+					
+				break;
 
 
 

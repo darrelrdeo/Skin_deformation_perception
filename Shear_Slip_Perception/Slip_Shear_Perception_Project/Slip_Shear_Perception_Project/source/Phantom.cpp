@@ -95,11 +95,13 @@ void updatePhantom(void) {
 
 			// if the output device is a phantom then perform updates for output, otherwise skip
 			if (p_sharedData->output_device == OUTPUT_PHANTOM) {
-
-				// render the appropriate forces through interaction with virtual environment (these desired forces should be computed in experiment thread)
-				cVector3d desiredForce = cVector3d(p_sharedData->outputPhantomForce_Desired_X, p_sharedData->outputPhantomForce_Desired_Y, p_sharedData->outputPhantomForce_Desired_Z);
+				cVector3d desiredForce(0,0,0);
+				// check Zero force flag, if true then force to zero
+				if (!p_sharedData->ZeroPhantomForce_FLAG) {
+					// render the appropriate forces through interaction with virtual environment (these desired forces should be computed in experiment thread)
+					cVector3d desiredForce = cVector3d(p_sharedData->outputPhantomForce_Desired_X, p_sharedData->outputPhantomForce_Desired_Y, p_sharedData->outputPhantomForce_Desired_Z);
+				}
 				p_sharedData->p_output_Phantom->setForce(desiredForce);
-
 			}
             // update frequency counter
             p_sharedData->phantomFreqCounter.signal(1);

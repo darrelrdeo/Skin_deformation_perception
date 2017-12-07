@@ -103,12 +103,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\extras\freeglut\include;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\glew\include;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\Eigen;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\src;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\Slip_Shear_Perception_Project\Slip_Shear_Perception_Project\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\Slip_Shear_Perception_Project\Slip_Shear_Perception_Project\include\Force_Sensor_include_old;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\extras\freeglut\include;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\glew\include;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\Eigen;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\src;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\Slip_Shear_Perception_Project\Slip_Shear_Perception_Project\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\extras\freeglut\lib\$(Configuration)\$(Platform);E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\lib\$(Configuration)\$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>chai3d.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\extras\freeglut\lib\$(Configuration)\$(Platform);E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\lib\$(Configuration)\$(Platform);E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\Slip_Shear_Perception_Project\Slip_Shear_Perception_Project\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>chai3d.lib;freeglut.lib;Force_Sensor_2010.lib;NIDAQmx.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
@@ -126,14 +126,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\extras\freeglut\include;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\glew\include;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\Eigen;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\src;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\Slip_Shear_Perception_Project\Slip_Shear_Perception_Project\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\Slip_Shear_Perception_Project\Slip_Shear_Perception_Project\include\Force_Sensor_include_old;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\extras\freeglut\include;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\glew\include;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\external\Eigen;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\src;E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\Slip_Shear_Perception_Project\Slip_Shear_Perception_Project\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\extras\freeglut\lib\$(Configuration)\$(Platform);E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\lib\$(Configuration)\$(Platform);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>chai3d.lib;freeglut.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\extras\freeglut\lib\$(Configuration)\$(Platform);E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\external\chai3d-3.0.0\lib\$(Configuration)\$(Platform);E:\Darrel\BrainGate_skin_deformation_perception\Shear_Slip_Perception\Slip_Shear_Perception_Project\Slip_Shear_Perception_Project\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>chai3d.lib;freeglut.lib;Force_Sensor_2010.lib;NIDAQmx.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>

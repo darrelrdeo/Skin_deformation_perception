@@ -92,10 +92,24 @@ void setup(void) {
 	p_sharedData->outputPhantomForce_Y = 0;
 	p_sharedData->outputPhantomForce_Z = 0;
 
+	p_sharedData->ZeroPhantomForce_FLAG = false;
+
 	// Joystick State
 	p_sharedData->joystickPosX = 0;
 	p_sharedData->joystickPosY = 0;
 	p_sharedData->joystickSwitch = 0;
+
+	// Initialize Force sensing
+	p_sharedData->g_ForceSensor.Set_Calibration_File_Loc(FS_CALIB);
+	p_sharedData->g_ForceSensor.Initialize_Force_Sensor(FS_INIT);
+	cSleepMs(1000);
+	p_sharedData->g_ForceSensor.Zero_Force_Sensor();
+	cSleepMs(1000);
+	printf("\n\nForce Sensor Initialized\n\n");
+
+	// Turn force sensing on
+	p_sharedData->sensing = true;
+	for (int i = 0; i<3; i++) p_sharedData->force[i] = 0;
 
 	// Time Stamps
 	p_sharedData->phantomLoopTimeStamp = 0;
@@ -228,6 +242,8 @@ void saveOneTimeStep(void) {
 	temp.d_outputPhantomForce_Y = p_sharedData->outputPhantomForce_Y;
 	temp.d_outputPhantomForce_Z = p_sharedData->outputPhantomForce_Z;
 
+	// force sensing
+	for (int i = 0; i<3; i++) temp.d_force[i] = p_sharedData->force[i];
 
 	// Joystick State
 	temp.d_joystickPosX = p_sharedData->joystickPosX;
@@ -264,7 +280,7 @@ void recordTrial(void) {
     
     // iterate over vector, writing one time step at a time
     for (vector<save_data>::iterator it = p_sharedData->trialData.begin() ; it != p_sharedData->trialData.end(); ++it) {
-        fprintf(p_sharedData->outputFile,"%d %d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %lu %lu %lu %lu %lu %lu %lu %f %f %f %f",
+        fprintf(p_sharedData->outputFile,"%d %d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %lu %lu %lu %lu %lu %lu %lu %f %f %f %f",
                 	it->d_blockNum,
 					it->d_trialNum,
 					it->d_cursorPosX,
@@ -293,6 +309,9 @@ void recordTrial(void) {
 					it->d_outputPhantomForce_X,
 					it->d_outputPhantomForce_Y,
 					it->d_outputPhantomForce_Z,
+					it->d_force[0],
+					it->d_force[1],
+					it->d_force[2],
 					it->d_joystickPosX,
 					it->d_joystickPosY,
 					it->d_joystickSwitch,

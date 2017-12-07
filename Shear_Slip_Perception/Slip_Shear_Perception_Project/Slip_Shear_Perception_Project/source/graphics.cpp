@@ -235,6 +235,15 @@ void initGraphics(int argc, char* argv[]) {
 	camera->m_frontLayer->addChild(cursorVelZ);
 	*/
 
+
+
+	// display keyboard control options
+	printf("\n\n*****************************************\n");
+	printf("f = fullscreen toggle\n");
+	printf("z = (Toggle) Zero Phantom Output Forces\n");
+	printf("t =  DEMO STATE: Force Sensor Testing\n");
+	printf("Q/ESC = quit\n");
+	printf("*****************************************\n\n");
 }
 
 // update and re-render the graphics
@@ -407,14 +416,33 @@ void resizeWindow(int W, int H) {
 // dictates response to a keypress within the graphics window
 void respToKey(unsigned char key, int x, int y) {
 
-	// set zero position
+	// Zero force
 	if (key == 'z')
 	{
-		p_sharedData->outputZeroPosX = p_sharedData->outputPhantomPosX;
-		p_sharedData->outputZeroPosY = p_sharedData->outputPhantomPosY;
-		p_sharedData->outputZeroPosZ = p_sharedData->outputPhantomPosZ;
+		
+		p_sharedData->outputPhantomForce_Desired_X = 0;
+		p_sharedData->outputPhantomForce_Desired_Y = 0;
+		p_sharedData->outputPhantomForce_Desired_Z = 0;
 
-		p_sharedData->demoStateNumber = INPUT_PROMPT_DEMO;
+		// toggle flag
+		if (p_sharedData->ZeroPhantomForce_FLAG) {
+			// flip flag to zero force
+			p_sharedData->ZeroPhantomForce_FLAG = false;
+		}
+		else {
+			p_sharedData->ZeroPhantomForce_FLAG = true;
+		}
+	}
+
+
+	// Force Sensor Testing t
+	if (key == 't')
+	{
+		// set demoState number and name
+		p_sharedData->demoStateNumber = FORCE_SENSOR_TESTING_DEMO;
+		p_sharedData->demoStateName = "Force Sensor Testing";
+
+
 
 	}
 

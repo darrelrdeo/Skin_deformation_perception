@@ -16,7 +16,9 @@
 #include <stdio.h>
 #include <string.h>
 #include "Phantom.h"
-
+#include "cForceSensor.h"
+#include "cATIForceSensor.h"
+#include "cDaqHardwareInterface.h"
 #include "../../../external/chai3d-3.0.0/src/chai3d.h"
 #include "experiment.h"
 #include "graphics.h"
@@ -28,6 +30,7 @@ using namespace std;
 
 // Main or Test Harness Selection
 #define MAIN
+//#define TEST_NIDAQ_FT
 
 //------------------------
 // Variables & Structures
@@ -68,15 +71,9 @@ int main(int argc, char* argv[]) {
 		// retrieve information about the current haptic device
 		cHapticDeviceInfo info = hapticDevice[i]->getSpecifications();
 
-
-
-
 		// if the device has a gripper, enable the gripper to simulate a user switch
 		hapticDevice[i]->setEnableGripperUserSwitch(true);
-
 	}
-
-
 
 
 	sharedData = new shared_data();
@@ -101,10 +98,9 @@ int main(int argc, char* argv[]) {
 	cThread* joystickThread = new cThread();
 
 
-
 	// initialize devices
 	if ((sharedData->input_device == INPUT_PHANTOM) || ((sharedData->output_device == OUTPUT_PHANTOM)))     initPhantom();
-	//if (sharedData->input_device == INPUT_JOYSTICK) initJoystick();
+
 
 	// initialize experiment(default) or demo 
 	if (sharedData->opMode == EXPERIMENT) initExperiment();
@@ -113,17 +109,12 @@ int main(int argc, char* argv[]) {
 	// initialize graphics
 	initGraphics(argc, argv);
 
-	// display keyboard control options
-	printf("\n\n*********************\n");
-	printf("F = fullscreen toggle\n");
-	printf("Q/ESC = quit\n");
-	printf("*********************\n\n");
+	
 
 	// start simulation 
 	sharedData->simulationRunning = true;
 	// start threads
 	if ((sharedData->input_device == INPUT_PHANTOM) || ((sharedData->output_device == OUTPUT_PHANTOM))) phantomThread->start(updatePhantom, CTHREAD_PRIORITY_HAPTICS);
-	//if (sharedData->input_device == INPUT_JOYSTICK) joystickThread->start(updateJoystick, CTHREAD_PRIORITY_GRAPHICS);
 	experimentThread->start(updateExperiment, CTHREAD_PRIORITY_GRAPHICS);
 	glutTimerFunc(50, graphicsTimer, 0);
 	glutMainLoop();
@@ -142,3 +133,96 @@ int main(int argc, char* argv[]) {
 
 
 
+//#define TEST_NIDAQ_FT
+#ifdef TEST_NIDAQ_FT
+
+int main(int argc, char* argv[]) {
+	// set up simulation with user input
+	linkSharedData(sharedData);
+	setup();
+
+	// create threads
+	cThread* phantomThread = new cThread();
+	cThread* experimentThread = new cThread();
+
+	// give each thread access to shared data
+
+	linkSharedDataToPhantom(sharedData);
+	linkSharedDataToExperiment(sharedData);
+	linkSharedDataToGraphics(sharedData);
+
+	// initialize devices
+	if (sharedData->input == PHANTOM) initPhantom();
+	initNeuroTouch();
+
+	// initialize force sensor
+	sharedData->g_ForceSensor.Set_Calibration_File_Loc(FS_CALIB);
+	sharedData->g_ForceSensor.Initialize_Force_Sensor(FS_INIT);
+	cSleepMs(1000);
+	sharedData->g_ForceSensor.Zero_Force_Sensor();
+
+	// initialize experiment or demo (default)
+	if (sharedData->opMode == EXPERIMENT) initExperiment();
+	else if (sharedData->opMode == DEMO) initDemo();
+
+
+	// initialize graphics
+	initGraphics(argc, argv);
+
+	// display keyboard control options
+	printf("\n\n*********************\n");
+	printf("M = operating mode toggle (experiment vs. demo)\n");
+	printf("I = input device toggle for demo mode (Emotiv vs. PHANTOM vs. auto)\n");
+	printf("S = force sensing toggle (ON/OFF)");
+	printf("C = controller toggle\n");
+	printf("O = increase speed of autonomous cursor\n");
+	printf("L = decrease speed of autonomous cursor\n");
+	printf("F = fullscreen toggle\n");
+	printf("Q/ESC = quit\n");
+	printf("*********************\n\n");
+
+
+	double measuredForce[3];
+	double forceData[3] = { 0,0,0 };
+	for (;;) {
+		// display the forces
+		// get force sensor data 
+		int forceSensorData = sharedData->g_ForceSensor.AcquireFTData();
+		sharedData->g_ForceSensor.GetForceReading(forceData);
+
+		measuredForce[0] = forceData[0];
+		measuredForce[1] = forceData[1];
+		measuredForce[2] = forceData[2];
+
+		printf("\nX:    %f\nY:    %f\nZ:    %f\n", measuredForce[0], measuredForce[1], measuredForce[2]);
+		Sleep(1000);
+
+
+	}
+
+	// start threads
+	neurotouchThread->start(updateNeuroTouch, CTHREAD_PRIORITY_HAPTICS);  // highest priority
+	bciThread->start(updateBCI, CTHREAD_PRIORITY_HAPTICS);
+	phantomThread->start(updatePhantom, CTHREAD_PRIORITY_GRAPHICS);
+	experimentThread->start(updateExperiment, CTHREAD_PRIORITY_GRAPHICS);
+	glutTimerFunc(50, graphicsTimer, 0);
+	glutMainLoop();
+
+
+
+	// close everything
+	close();
+
+	// exit
+	return 0;
+
+
+
+
+}
+
+
+
+
+
+#endif // TEST_NIDAQ_FT
