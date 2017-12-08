@@ -94,6 +94,9 @@ void setup(void) {
 
 	p_sharedData->ZeroPhantomForce_FLAG = false;
 
+	// Data Saving flag
+	p_sharedData->saveData_FLAG = true;
+
 	// Joystick State
 	p_sharedData->joystickPosX = 0;
 	p_sharedData->joystickPosY = 0;

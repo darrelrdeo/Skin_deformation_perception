@@ -30,7 +30,7 @@ using namespace std;
 #define OUTPUT_DELTA		2
 
 // Force Sensing
-#define FS_CALIB "C:\\CalibrationFiles\\FT11287.cal"
+#define FS_CALIB "C:\\CalibrationFiles\\FT14057.cal"
 #define FS_INIT  "Dev1/ai0:5"
 
 // Experiment States
@@ -267,6 +267,7 @@ typedef struct {
 	double joystickSwitch;
 
 	// data storage
+	bool saveData_FLAG;// flag to enable saveOneTimeStep
 	vector<save_data> trialData;  // for one trial of experiment
     FILE* outputFile;              // output file for entire experiment (all blocks/trials)
 

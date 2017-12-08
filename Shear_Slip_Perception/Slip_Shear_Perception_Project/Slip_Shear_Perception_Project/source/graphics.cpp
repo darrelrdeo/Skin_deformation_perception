@@ -32,14 +32,20 @@ static cLabel* blockType;
 static cLabel* trial;             // label to display trial count
 static cLabel* message;           // label to display message to user
 
-static cLabel* frictionState;		//DEMO MODE Friction on/off indicator
-static cLabel* noiseState;			//DEMO MODE Noise on/off indicator
-static cLabel* filterState;			//DEMO MODE Filter cutoff frequency indicator
-static cLabel* sdState;				//DEMO MODE Standard Deviation indicator 
-
+// output Phantom forces via GetForce()
 static cLabel* XForce;			  // label to display the x force
 static cLabel* YForce;			  // label to display the y force
 static cLabel* ZForce;			  // label to display the z force
+
+// desired output force for output Phantom
+static cLabel* XForce_Desired;
+static cLabel* YForce_Desired;
+static cLabel* ZForce_Desired;
+
+// measured force sensor readings
+static cLabel* XForce_Measured;
+static cLabel* YForce_Measured;
+static cLabel* ZForce_Measured;
 
 static cLabel* cursorPosX;		// label to display cursor x position
 static cLabel* cursorPosY;		// label to display cursor y position
@@ -60,14 +66,6 @@ static cLabel* output_phantomPosZ;
 
 
 
-// phantom velocities
-static cLabel* input_phantomVelX;
-static cLabel* input_phantomVelY;
-static cLabel* input_phantomVelZ;
-
-static cLabel* output_phantomVelX;
-static cLabel* output_phantomVelY;
-static cLabel* output_phantomVelZ;
 
 static shared_data* p_sharedData;  // structure for sharing data between threads (NOTE: for graphics,
 
@@ -95,7 +93,7 @@ void initGraphics(int argc, char* argv[]) {
     glutInitWindowSize(windowW, windowH);
     glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
     glutCreateWindow(argv[0]);
-    glutSetWindowTitle("Haptic BCI Noise");
+    glutSetWindowTitle("Slip/Shear Perception");
     if (fullscreen) glutFullScreen();
     
     // initialize GLEW library (must happen after window creation)
@@ -118,11 +116,6 @@ void initGraphics(int argc, char* argv[]) {
                 cVector3d (0.0, 0.0, 0.0),   // look at center
                 cVector3d (0.0, 0.0, 1.0));  // "up" vector
 				
-	//side view
-	/*camera->set(cVector3d (3.0, 0.0, -0.3),   // camera position
-                cVector3d (0.0, 0.0, 0.0),   // look at center
-                cVector3d (0.0, 0.0, 1.0));  // "up" vector
-				*/
 
     camera->setClippingPlanes(0.01, 100.0);
 
@@ -166,39 +159,32 @@ void initGraphics(int argc, char* argv[]) {
 	experimentState = new cLabel(font);
 	blockType = new cLabel(font);
 
-	frictionState = new cLabel(font);
-	noiseState = new cLabel(font);
-	filterState = new cLabel(font);
-	sdState = new cLabel(font);
-
 	input_phantomPosX = new cLabel(font);
 	input_phantomPosY = new cLabel(font);
 	input_phantomPosZ = new cLabel(font);
 
+	// Output Phantom forces from GetForce()
 	XForce = new cLabel(font);
 	YForce = new cLabel(font);
 	ZForce = new cLabel(font);
 
+	// Output Phantom desired forces
+	XForce_Desired = new cLabel(font);
+	YForce_Desired = new cLabel(font);
+	ZForce_Desired = new cLabel(font);
+
+	XForce_Measured = new cLabel(font);
+	YForce_Measured = new cLabel(font);
+	ZForce_Measured = new cLabel(font);
+
 	cursorPosX = new cLabel(font);
 	cursorPosY = new cLabel(font);
 	cursorPosZ = new cLabel(font);
-/*
-	input_phantomVelX = new cLabel(font);
-	input_phantomVelY = new cLabel(font);
-	input_phantomVelZ = new cLabel(font);
 
 	output_phantomPosX = new cLabel(font);
 	output_phantomPosY = new cLabel(font);
 	output_phantomPosZ = new cLabel(font);
 
-	output_phantomVelX = new cLabel(font);
-	output_phantomVelY = new cLabel(font);
-	output_phantomVelZ = new cLabel(font);
-
-	cursorVelX = new cLabel(font);
-	cursorVelY = new cLabel(font);
-	cursorVelZ = new cLabel(font);
-*/
 
 	// add labels to frontLayer
 	//-----------------------------------------------
@@ -212,28 +198,25 @@ void initGraphics(int argc, char* argv[]) {
 	camera->m_frontLayer->addChild(XForce);
 	camera->m_frontLayer->addChild(YForce);
 	camera->m_frontLayer->addChild(ZForce);
+	camera->m_frontLayer->addChild(XForce_Desired);
+	camera->m_frontLayer->addChild(YForce_Desired);
+	camera->m_frontLayer->addChild(ZForce_Desired);
+	camera->m_frontLayer->addChild(XForce_Measured);
+	camera->m_frontLayer->addChild(YForce_Measured);
+	camera->m_frontLayer->addChild(ZForce_Measured);
 	camera->m_frontLayer->addChild(cursorPosX);
 	camera->m_frontLayer->addChild(cursorPosY);
 	camera->m_frontLayer->addChild(cursorPosZ);
 	camera->m_frontLayer->addChild(input_phantomPosX);
 	camera->m_frontLayer->addChild(input_phantomPosY);
 	camera->m_frontLayer->addChild(input_phantomPosZ);
-	camera->m_frontLayer->addChild(frictionState);
-	camera->m_frontLayer->addChild(noiseState);
-	camera->m_frontLayer->addChild(filterState);
-	camera->m_frontLayer->addChild(sdState);
 
-	/*
+
+
 	camera->m_frontLayer->addChild(output_phantomPosX);
 	camera->m_frontLayer->addChild(output_phantomPosY);
 	camera->m_frontLayer->addChild(output_phantomPosZ);
-	camera->m_frontLayer->addChild(input_phantomVelX);
-	camera->m_frontLayer->addChild(input_phantomVelY);
-	camera->m_frontLayer->addChild(input_phantomVelY);
-	camera->m_frontLayer->addChild(cursorVelX);
-	camera->m_frontLayer->addChild(cursorVelY);
-	camera->m_frontLayer->addChild(cursorVelZ);
-	*/
+
 
 
 
@@ -300,9 +283,17 @@ void updateGraphics(void) {
 	blockType->setString("Block Name: " + p_sharedData->blockName);
 
 
-	XForce->setString("XForce Des: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_X)));
-	YForce->setString("YForce Des: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Y)));
-	ZForce->setString("ZForce Des: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Z)));
+	XForce->setString("XForce: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_X)));
+	YForce->setString("YForce: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Y)));
+	ZForce->setString("ZForce: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Z)));
+
+	XForce_Desired->setString("XForce Des: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Desired_X)));
+	YForce_Desired->setString("YForce Des: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Desired_Y)));
+	ZForce_Desired->setString("ZForce Des: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Desired_Z)));
+
+	XForce_Measured->setString("XForce Measured: " + to_string(static_cast<long double>(p_sharedData->force[0])));
+	YForce_Measured->setString("YForce Measured: " + to_string(static_cast<long double>(p_sharedData->force[1])));
+	ZForce_Measured->setString("ZForce Measured: " + to_string(static_cast<long double>(p_sharedData->force[2])));
 
     cursorPosX->setString("CursorPos X: " + to_string(static_cast<long double>(p_sharedData->cursorPosX)));
 	cursorPosY->setString("CursorPos Y: " + to_string(static_cast<long double>(p_sharedData->cursorPosY)));
@@ -311,29 +302,36 @@ void updateGraphics(void) {
 	input_phantomPosX->setString("Input Phantom Pos X: " + to_string(static_cast<long double>(p_sharedData->inputPhantomPosX)));
 	input_phantomPosY->setString("Input Phantom Pos Y: " + to_string(static_cast<long double>(p_sharedData->inputPhantomPosY)));
 	input_phantomPosZ->setString("Input Phantom Pos Z: " + to_string(static_cast<long double>(p_sharedData->inputPhantomPosZ)));
-
-    opMode->setLocalPos(10, (int) (windowH - 1.0 * opMode->getHeight()), 0);
-    input_device->setLocalPos(10, (int) (windowH - 2.0 * input_device->getHeight()), 0);
-	output_device->setLocalPos(10, (int) (windowH - 3.0 * output_device->getHeight()), 0);
-    phantomRate->setLocalPos(10, (int) (windowH - 4.0 * phantomRate->getHeight()), 0);
+	
+	int i = 1;
+	opMode->setLocalPos(10, (int)(windowH - i * opMode->getHeight()), 0); i++;
+    input_device->setLocalPos(10, (int) (windowH - i * input_device->getHeight()), 0); i++;
+	output_device->setLocalPos(10, (int) (windowH - i * output_device->getHeight()), 0); i++;
+    phantomRate->setLocalPos(10, (int) (windowH - i * phantomRate->getHeight()), 0); i++;
    	
-	XForce->setLocalPos(10, (int) (windowH - 5.0 * XForce->getHeight()), 0);
-	YForce->setLocalPos(10, (int) (windowH - 6.0 * YForce->getHeight()), 0);
-	ZForce->setLocalPos(10, (int) (windowH - 7.0 * YForce->getHeight()), 0);
+	XForce->setLocalPos(10, (int) (windowH - i * XForce->getHeight()), 0); i++;
+	YForce->setLocalPos(10, (int) (windowH - i * YForce->getHeight()), 0); i++;
+	ZForce->setLocalPos(10, (int) (windowH - i * ZForce->getHeight()), 0); i++;
 
-	cursorPosX->setLocalPos(10, (int) (windowH - 8.0 * cursorPosX->getHeight()),0);
-	cursorPosY->setLocalPos(10, (int) (windowH - 9.0 * cursorPosY->getHeight()),0);
-	cursorPosZ->setLocalPos(10, (int) (windowH - 10.0 * cursorPosZ->getHeight()),0);
+	XForce_Desired->setLocalPos(10, (int)(windowH - i * XForce_Desired->getHeight()), 0); i++;
+	YForce_Desired->setLocalPos(10, (int)(windowH - i * YForce_Desired->getHeight()), 0); i++;
+	ZForce_Desired->setLocalPos(10, (int)(windowH - i * ZForce_Desired->getHeight()), 0); i++;
 
-	input_phantomPosX->setLocalPos(10, (int) (windowH - 11.0 * input_phantomPosX->getHeight()),0);
-	input_phantomPosY->setLocalPos(10, (int) (windowH - 12.0 * input_phantomPosY->getHeight()),0);
-	input_phantomPosZ->setLocalPos(10, (int) (windowH - 13.0 * input_phantomPosZ->getHeight()),0);
+	XForce_Measured->setLocalPos(10, (int)(windowH - i * XForce_Measured->getHeight()), 0); i++;
+	YForce_Measured->setLocalPos(10, (int)(windowH - i * YForce_Measured->getHeight()), 0); i++;
+	ZForce_Measured->setLocalPos(10, (int)(windowH - i * ZForce_Measured->getHeight()), 0); i++;
+
+	cursorPosX->setLocalPos(10, (int) (windowH - i * cursorPosX->getHeight()),0); i++;
+	cursorPosY->setLocalPos(10, (int) (windowH - i * cursorPosY->getHeight()),0); i++;
+	cursorPosZ->setLocalPos(10, (int) (windowH - i * cursorPosZ->getHeight()),0); i++;
+
+	input_phantomPosX->setLocalPos(10, (int) (windowH - i * input_phantomPosX->getHeight()),0); i++;
+	input_phantomPosY->setLocalPos(10, (int) (windowH - i * input_phantomPosY->getHeight()),0); i++;
+	input_phantomPosZ->setLocalPos(10, (int) (windowH - i * input_phantomPosZ->getHeight()),0); i++;
 
 	trial->setLocalPos((int) (windowW - trial->getWidth() - 10), (int) (windowH - 2.0 * trial->getHeight()), 0);
-	filterState->setLocalPos((int) (windowW - filterState->getWidth() - 10), (int) (windowH - 2.0 * filterState->getHeight()), 0);
-	sdState->setLocalPos((int) (windowW - sdState->getWidth() - 10), (int) (windowH - 3.0 * sdState->getHeight()), 0);
-	frictionState->setLocalPos(0, (int)(frictionState->getHeight()), 0);
-	blockType->setLocalPos((int) (windowW - blockType->getWidth() - 10), (int) (0), 0);
+	
+	blockType->setLocalPos((int) (windowW - blockType->getWidth() - 10), (int) (0), 0); i++;
         
 	// update message to user
     message->setString(p_sharedData->message);
@@ -349,6 +347,15 @@ void updateGraphics(void) {
 	XForce->setShowEnabled(DEBUG_DISPLAYS);
 	YForce->setShowEnabled(DEBUG_DISPLAYS);
 	ZForce->setShowEnabled(DEBUG_DISPLAYS);
+
+	XForce_Desired->setShowEnabled(DEBUG_DISPLAYS);
+	YForce_Desired->setShowEnabled(DEBUG_DISPLAYS);
+	ZForce_Desired->setShowEnabled(DEBUG_DISPLAYS);
+	
+	XForce_Measured->setShowEnabled(DEBUG_DISPLAYS);
+	YForce_Measured->setShowEnabled(DEBUG_DISPLAYS);
+	ZForce_Measured->setShowEnabled(DEBUG_DISPLAYS);
+
 	cursorPosX->setShowEnabled(DEBUG_DISPLAYS);
 	cursorPosY->setShowEnabled(DEBUG_DISPLAYS);
 	cursorPosZ->setShowEnabled(DEBUG_DISPLAYS);
@@ -360,13 +367,7 @@ void updateGraphics(void) {
 			trial->setShowEnabled(false);
 
 		}
-	else
-		{	
-			noiseState->setShowEnabled(false);
-			frictionState->setShowEnabled(false);
-			filterState->setShowEnabled(false);
-			sdState->setShowEnabled(false);
-		}
+
 	/*
 	input_phantomVelX->setShowEnabled(DEBUG_DISPLAYS);
 	input_phantomVelY->setShowEnabled(DEBUG_DISPLAYS);
@@ -442,6 +443,27 @@ void respToKey(unsigned char key, int x, int y) {
 		p_sharedData->demoStateNumber = FORCE_SENSOR_TESTING_DEMO;
 		p_sharedData->demoStateName = "Force Sensor Testing";
 
+
+
+	}
+
+
+	// Enable data saving
+	if (key == 'r')
+	{
+		/*
+		// set recording flag
+		if (p_sharedData->saveData_FLAG) {
+			// flip flag to zero force
+			p_sharedData->saveData_FLAG = false;
+		}
+		else {
+			p_sharedData->saveData_FLAG = true;
+		}
+
+		p_sharedData->demoStateNumber = FORCE_SENSOR_TESTING_DEMO;
+		p_sharedData->demoStateName = "Force Sensor Testing";
+		*/
 
 
 	}

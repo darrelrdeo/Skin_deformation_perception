@@ -36,8 +36,7 @@ static const int relax_to_trial_time = 2;       // Message prompt in seconds bef
 static const int numberOfBlocks = 2;
 
 
-// private vector to hold phantom GetForce (should move to p_Shared)
-static cVector3d phantomForce(0, 0, 0);
+
 
 // Demo Loop Params
 bool demo_start = true;
@@ -474,15 +473,15 @@ void updateExperiment(void) {
 				// Begin State Machine
 				switch (p_sharedData->demoStateNumber) {
 
-/**********************************************************************************/
-				case START_UP_DEMO :
+					/**********************************************************************************/
+				case START_UP_DEMO:
 					// prompt user to define zero location
 					p_sharedData->message = "Waiting on Keypress to select next State ";
 					p_sharedData->demoStateName = "START UP DEMO";
 					// key press in graphics thread will send state machine to next state once zero location set
 
-				break;
-/**********************************************************************************/
+					break;
+					/**********************************************************************************/
 
 
 				case FORCE_SENSOR_TESTING_DEMO:
@@ -490,19 +489,12 @@ void updateExperiment(void) {
 					// set demoState number and name
 					p_sharedData->demoStateName = "Force Sensor Testing";
 
-					// obtain force sensor reading
-					// if sensing, measure XYZ finger force
-					if (p_sharedData->sensing) {
-						int n = p_sharedData->g_ForceSensor.AcquireFTData();  // integer output indicates success/failure
-						p_sharedData->g_ForceSensor.GetForceReading(p_sharedData->force);
-					}
+					if (!p_sharedData->ZeroPhantomForce_FLAG) {
 
-					// obtain phantom premium GetForce
-
-					p_sharedData->p_output_Phantom->getForce(phantomForce);
-					p_sharedData->outputPhantomForce_X = phantomForce.x();
-					p_sharedData->outputPhantomForce_Y = phantomForce.y();
-					p_sharedData->outputPhantomForce_Z = phantomForce.z();
+						p_sharedData->outputPhantomForce_Desired_X = 10 * p_sharedData->cursorPosZ;
+						p_sharedData->outputPhantomForce_Desired_Y = 10 * p_sharedData->cursorPosY;
+						p_sharedData->outputPhantomForce_Desired_Z = 0; // 10 * p_sharedData->cursorPosZ;
+				}
 
 					break;
 /**********************************************************************************/
@@ -523,7 +515,7 @@ void updateExperiment(void) {
 					
 					// Desired force output
 
-					p_sharedData->outputPhantomForce_Desired_X = 10*p_sharedData->cursorPosX;
+					p_sharedData->outputPhantomForce_Desired_X = -10*p_sharedData->cursorPosX;
 					p_sharedData->outputPhantomForce_Desired_Y = 10*p_sharedData->cursorPosY;
 					p_sharedData->outputPhantomForce_Desired_Z = 10*p_sharedData->cursorPosZ;
 

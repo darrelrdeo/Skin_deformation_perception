@@ -11,6 +11,9 @@ using namespace std;
 #define DEBUG_FLAG
 
 static const double phantomScalar = 2;  // to scale PHANTOM workspace to graphics workspace
+										
+// private vector to hold phantom GetForce (should move to p_Shared)
+static cVector3d phantomForce(0, 0, 0);
 
 static shared_data* p_sharedData;  // structure for sharing data between threads
 
@@ -95,13 +98,30 @@ void updatePhantom(void) {
 
 			// if the output device is a phantom then perform updates for output, otherwise skip
 			if (p_sharedData->output_device == OUTPUT_PHANTOM) {
-				cVector3d desiredForce(0,0,0);
+
+				// obtain force sensor reading
+				// if sensing, measure XYZ finger force
+				if (p_sharedData->sensing) {
+					int n = p_sharedData->g_ForceSensor.AcquireFTData();  // integer output indicates success/failure
+					p_sharedData->g_ForceSensor.GetForceReading(p_sharedData->force);
+				}
+
+				
 				// check Zero force flag, if true then force to zero
-				if (!p_sharedData->ZeroPhantomForce_FLAG) {
+			
 					// render the appropriate forces through interaction with virtual environment (these desired forces should be computed in experiment thread)
 					cVector3d desiredForce = cVector3d(p_sharedData->outputPhantomForce_Desired_X, p_sharedData->outputPhantomForce_Desired_Y, p_sharedData->outputPhantomForce_Desired_Z);
-				}
+				
+					if (p_sharedData->ZeroPhantomForce_FLAG) {
+						cVector3d desiredForce(0, 0, 0);
+					}
 				p_sharedData->p_output_Phantom->setForce(desiredForce);
+
+				// update Phantom Getforce
+				p_sharedData->p_output_Phantom->getForce(phantomForce);
+				p_sharedData->outputPhantomForce_X = phantomForce.x();
+				p_sharedData->outputPhantomForce_Y = phantomForce.y();
+				p_sharedData->outputPhantomForce_Z = phantomForce.z();
 			}
             // update frequency counter
             p_sharedData->phantomFreqCounter.signal(1);
@@ -118,31 +138,14 @@ void updatePhantom(void) {
 }
 
 void updateCursor(void) {
-	// position-position mapping between input phantom and virtual cursor
 
-	/*
-	//This code segment maps cursor position to non-noisy device position
-	p_sharedData->cursorPosY = p_sharedData->tool->getDeviceLocalPos().y();
-	p_sharedData->cursorPosZ = p_sharedData->tool->getDeviceLocalPos().z();
-	p_sharedData->cursorPosX = p_sharedData->tool->getDeviceLocalPos().x();
-	*/
+	// position-position mapping between input phantom and virtual cursor
 	p_sharedData->cursorPosX = phantomScalar*p_sharedData->inputPhantomPosX;
 	p_sharedData->cursorPosY = phantomScalar*p_sharedData->inputPhantomPosY;
 	p_sharedData->cursorPosZ = phantomScalar*p_sharedData->inputPhantomPosZ;
-	
-
-	
-
-	/*
-	//This code segment maps cursor position to the "proxy sphere"
-	p_sharedData->cursorPosX = p_sharedData->tool->m_hapticPoint->m_sphereProxy->getLocalPos().x();
-	p_sharedData->cursorPosY = p_sharedData->tool->m_hapticPoint->m_sphereProxy->getLocalPos().y();
-	p_sharedData->cursorPosZ = p_sharedData->tool->m_hapticPoint->m_sphereProxy->getLocalPos().z();
-	*/
 
 	// update cursor position
 	p_sharedData->vCursor->setLocalPos( cVector3d(VIRTUAL_CURSOR_VPOS,p_sharedData->cursorPosY,p_sharedData->cursorPosZ) );
-	//p_sharedData->vCursor->setLocalPos( cVector3d(p_sharedData->cursorPosX,p_sharedData->cursorPosY,p_sharedData->cursorPosZ) );
 }
 
 
