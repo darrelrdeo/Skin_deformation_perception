@@ -418,9 +418,9 @@ void resizeWindow(int W, int H) {
 void respToKey(unsigned char key, int x, int y) {
 
 	// Zero force
-	if (key == 'z')
+	if (key == 'x')
 	{
-		
+
 		p_sharedData->outputPhantomForce_Desired_X = 0;
 		p_sharedData->outputPhantomForce_Desired_Y = 0;
 		p_sharedData->outputPhantomForce_Desired_Z = 0;
@@ -447,6 +447,23 @@ void respToKey(unsigned char key, int x, int y) {
 
 	}
 
+
+	// nano 17 zero
+	if (key == 'n'){
+	p_sharedData->g_ForceSensor.Zero_Force_Sensor();
+	p_sharedData->message = "Nano17 biased. \nPlease Zero the tactor against the Participant's neck. Press z when complete.";
+}
+
+	// zero position
+	if (key == 'z') {
+		p_sharedData->outputZeroPosX = p_sharedData->outputPhantomPosX;
+		p_sharedData->outputZeroPosY = p_sharedData->outputPhantomPosY;
+		p_sharedData->outputZeroPosZ = p_sharedData->outputPhantomPosZ;
+		p_sharedData->output_ZeroRotation = p_sharedData->outputPhantomRotation;
+		p_sharedData->experimentStateNumber = IDLE;
+		p_sharedData->message = "Great Now holding position";
+
+	}
 
 	// Enable data saving
 	if (key == 'r')

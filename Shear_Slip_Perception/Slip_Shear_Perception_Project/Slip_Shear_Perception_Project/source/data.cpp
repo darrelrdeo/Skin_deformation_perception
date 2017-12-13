@@ -17,7 +17,7 @@ void linkSharedData(shared_data& sharedData) {
 
 // set-up for simulation
 void setup(void) {
-    // initialize all elements of p_sharedData structure
+	// initialize all elements of p_sharedData structure
 
 
 	// Simulation State
@@ -75,10 +75,12 @@ void setup(void) {
 	p_sharedData->outputPhantomVelY = 0;
 	p_sharedData->outputPhantomVelZ = 0;
 
-	// initialize output phantom zero positions
+	// initialize output phantom zero positions and rotation
 	p_sharedData->outputZeroPosX = 0;
 	p_sharedData->outputZeroPosY = 0;
 	p_sharedData->outputZeroPosZ = 0;
+	p_sharedData->output_ZeroRotation = cMatrix3d(0, 0, 0, 0, 0, 0, 0, 0, 0);
+
 
 	p_sharedData->outputPhantomSwitch = 0;
 
@@ -102,6 +104,13 @@ void setup(void) {
 	p_sharedData->joystickPosY = 0;
 	p_sharedData->joystickSwitch = 0;
 
+
+
+	// Turn force sensing on
+	p_sharedData->sensing = true;
+	for (int i = 0; i < 3; i++) p_sharedData->force[i] = 0;
+
+
 	// Initialize Force sensing
 	p_sharedData->g_ForceSensor.Set_Calibration_File_Loc(FS_CALIB);
 	p_sharedData->g_ForceSensor.Initialize_Force_Sensor(FS_INIT);
@@ -110,9 +119,7 @@ void setup(void) {
 	cSleepMs(1000);
 	printf("\n\nForce Sensor Initialized\n\n");
 
-	// Turn force sensing on
-	p_sharedData->sensing = true;
-	for (int i = 0; i<3; i++) p_sharedData->force[i] = 0;
+
 
 	// Time Stamps
 	p_sharedData->phantomLoopTimeStamp = 0;

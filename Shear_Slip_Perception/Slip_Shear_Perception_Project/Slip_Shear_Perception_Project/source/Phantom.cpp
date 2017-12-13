@@ -10,6 +10,17 @@ using namespace std;
 
 #define DEBUG_FLAG
 
+
+// Data variables we need to record during the record step
+cVector3d cursor_pos; //temporary variable for haptic tool cursor position
+cVector3d input_pos;  // temporary variable for input PHANTOM position 
+cVector3d input_vel;  // temporary variable for input PHANTOM velocity 
+cVector3d output_pos;  // temporary variable for output PHANTOM position 
+cMatrix3d output_rotation;
+cVector3d output_vel;  // temporary variable for output PHANTOM velocity 
+cVector3d output_force; // temp var for output PHANTOM currently output force
+
+
 static const double phantomScalar = 2;  // to scale PHANTOM workspace to graphics workspace
 										
 // private vector to hold phantom GetForce (should move to p_Shared)
@@ -80,8 +91,73 @@ void updatePhantom(void) {
 			p_sharedData->phantomLoopDelta = delta;
 			p_sharedData->phantomLoopTimeStamp = currTime;
 
+			//calculate the cursorVel
+			if (delta != 0)
+			{
+				p_sharedData->cursorVelX = (p_sharedData->cursorPosX - p_sharedData->cursorPosX_OneAgo) / delta;
+				p_sharedData->cursorVelY = (p_sharedData->cursorPosY - p_sharedData->cursorPosY_OneAgo) / delta;
+				p_sharedData->cursorVelZ = (p_sharedData->cursorPosZ - p_sharedData->cursorPosZ_OneAgo) / delta;
+			}
+			else
+			{
+				p_sharedData->cursorVelX = p_sharedData->cursorPosX - p_sharedData->cursorPosX_OneAgo;
+				p_sharedData->cursorVelY = p_sharedData->cursorPosY - p_sharedData->cursorPosY_OneAgo;
+				p_sharedData->cursorVelZ = p_sharedData->cursorPosZ - p_sharedData->cursorPosZ_OneAgo;
+			}
+
+			//store current position as old position
+			p_sharedData->cursorPosX_OneAgo = p_sharedData->cursorPosX;
+			p_sharedData->cursorPosY_OneAgo = p_sharedData->cursorPosY;
+			p_sharedData->cursorPosZ_OneAgo = p_sharedData->cursorPosZ;
+
+			// poll the input and output devices and record their states.
+
+			// get INPUT PHANTOM position and velocity vectors
+			p_sharedData->p_input_Phantom->getPosition(input_pos);
+			p_sharedData->p_input_Phantom->getLinearVelocity(input_vel);
+
+			//store position values into respective variable in sharedData structure
+			p_sharedData->inputPhantomPosX = input_pos.x();
+			p_sharedData->inputPhantomPosY = input_pos.y();
+			p_sharedData->inputPhantomPosZ = input_pos.z();
+
+			// store velocity values into respective vars in sharedData structure
+			p_sharedData->inputPhantomVelX = input_vel.x();
+			p_sharedData->inputPhantomVelY = input_vel.y();
+			p_sharedData->inputPhantomVelZ = input_vel.z();
+
+			// get current forces output by OUTPUT PHANTOM device
+			p_sharedData->p_output_Phantom->getForce(output_force);
+			p_sharedData->outputPhantomForce_X = output_force.x();
+			p_sharedData->outputPhantomForce_Y = output_force.y();
+			p_sharedData->outputPhantomForce_Z = output_force.z();
+
+			// get OUTPUT PHANTOM position and velocity vectors and rotation matrix
+			p_sharedData->p_output_Phantom->getPosition(output_pos);
+			p_sharedData->p_output_Phantom->getLinearVelocity(output_vel);
+			p_sharedData->p_output_Phantom->getRotation(output_rotation);
+
+			//store position values into respective variable in sharedData structure
+			p_sharedData->outputPhantomPosX = output_pos.x();
+			p_sharedData->outputPhantomPosY = output_pos.y();
+			p_sharedData->outputPhantomPosZ = output_pos.z();
+
+			//store rotation matrix of output phantom tool
+			p_sharedData->outputPhantomRotation = output_rotation;
+
+			// store velocity values into respective vars in sharedData structure
+			p_sharedData->outputPhantomVelX = output_vel.x();
+			p_sharedData->outputPhantomVelY = output_vel.y();
+			p_sharedData->outputPhantomVelZ = output_vel.z();
+
+
+
 			// if the input device is a phantom then perform updates for input, otherwise skip
             if (p_sharedData->input_device == INPUT_PHANTOM) {
+
+
+
+
 
 				updateCursor();
 

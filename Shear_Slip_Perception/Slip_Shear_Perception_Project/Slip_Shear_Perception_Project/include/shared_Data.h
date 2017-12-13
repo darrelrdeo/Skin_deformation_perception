@@ -30,11 +30,14 @@ using namespace std;
 #define OUTPUT_DELTA		2
 
 // Force Sensing
-#define FS_CALIB "C:\\CalibrationFiles\\FT14057.cal"
+#define FS_CALIB "C:\\CalibrationFiles\\FT11289.cal"
 #define FS_INIT  "Dev1/ai0:5"
 
 // Experiment States
 #define START_UP	0
+#define ZERO_TACTOR				14
+#define IDLE		16
+#define PRE_TRAINING 15
 #define PRE_BLOCK   5
 #define TRAINING	7
 #define RECORD		2
@@ -44,6 +47,7 @@ using namespace std;
 
 // Demo States
 #define START_UP_DEMO			 7
+
 #define FORCE_SENSOR_TESTING_DEMO	13
 #define SET_ZERO_POINT_DEMO		 8
 #define HOLD_ZERO_POINT_DEMO	 12
@@ -187,6 +191,7 @@ typedef struct {
 	double outputZeroPosX;
 	double outputZeroPosY;
 	double outputZeroPosZ;
+	cMatrix3d output_ZeroRotation;
 
 	double cursorPosX_OneAgo;
 	double cursorPosY_OneAgo;
@@ -241,6 +246,7 @@ typedef struct {
 	double outputPhantomPosX;
 	double outputPhantomPosY;
 	double outputPhantomPosZ;
+	cMatrix3d outputPhantomRotation;
 
 	double outputPhantomVelX;
 	double outputPhantomVelY;

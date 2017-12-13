@@ -12,6 +12,7 @@ using namespace std;
 
 //#define DEBUG 
 
+/*
 // Data variables we need to record during the record step
 cVector3d cursor_pos; //temporary variable for haptic tool cursor position
 cVector3d input_pos;  // temporary variable for input PHANTOM position 
@@ -19,6 +20,7 @@ cVector3d input_vel;  // temporary variable for input PHANTOM velocity
 cVector3d output_pos;  // temporary variable for output PHANTOM position 
 cVector3d output_vel;  // temporary variable for output PHANTOM velocity 
 cVector3d output_force; // temp var for output PHANTOM currently output force
+*/
 
 // Experiment State Machine params
 #define TRIALS_TRG 8
@@ -134,6 +136,7 @@ void updateExperiment(void) {
 			// stop timer for experiment loop
 			p_sharedData->m_expLoopTimer.stop();
 
+			/*
 			//calculate the cursorVel
 			if (delta!=0)
 				{
@@ -189,6 +192,7 @@ void updateExperiment(void) {
 			p_sharedData->outputPhantomVelY = output_vel.y();
 			p_sharedData->outputPhantomVelZ = output_vel.z();
 
+*/
 
 
 //*********************EXPERIMENT STATE MACHINE************************************		
@@ -205,27 +209,59 @@ void updateExperiment(void) {
 						while(true){
 							if (_kbhit()) {
                         
-								// ready subject for 1st block of training and experimental trials
-								
-								// Obtain the 1st block parameters and update variables
-								blockNumberIndex = 1;
-								p_sharedData->blockNum = blockNumberIndex; // this is arbitrary for now, will make more sense once we configure experiment
-								p_sharedData->blockName = "Mock Trial";
-								
-								//Immediately send to Training and update message to be displayed in TRAINING
-								p_sharedData->experimentStateNumber = TRAINING;
-								p_sharedData->message = "Beginning Experiment Block " + to_string(static_cast<long long>(p_sharedData->blockNum)) + " : " + p_sharedData->blockName + " in " + to_string(static_cast<long long>(preblockTime)) + " seconds.";
-                        
-								// set/start timer (from zero)
-								p_sharedData->timer->setTimeoutPeriodSeconds(trainingTime);
-								p_sharedData->timer->start(true);
-
+								// when keypress occurs then send to ZERO Protocol
+								p_sharedData->message = "Please bias the Nano17 (press n). \nPlease Zero the tactor against the Participant's neck. Press z when complete.";
+								p_sharedData->experimentStateNumber = ZERO_TACTOR;
 								
 								break;
 							}
 						}
 						break; // END : START UP STATE
                     
+
+/**********************************************************************************/
+
+						// ZERO Tactor State
+					case ZERO_TACTOR : 
+						p_sharedData->experimentStateName = "ZERO_TACTOR";
+
+
+						// display All measured forces from Nano17
+
+
+						break;
+
+
+
+
+
+
+					case IDLE :
+						p_sharedData->experimentStateName = "IDLE";
+
+						//hold position (desired - actual)
+						//read position of haptic device
+						p_sharedData->p_output_Phantom->getPosition(position);
+
+						// obtain desired force for spring control
+						force = 1 * KP*(cVector3d(p_sharedData->outputZeroPosX, p_sharedData->outputZeroPosY, p_sharedData->outputZeroPosZ) - position);
+
+						//send force to hapic device
+						p_sharedData->outputPhantomForce_Desired_X = force.x();
+						p_sharedData->outputPhantomForce_Desired_Y = force.y();
+						p_sharedData->outputPhantomForce_Desired_Z = force.z();
+
+
+						break;
+
+
+
+
+
+
+
+
+
 
 /**********************************************************************************/
 					// TRAINING STATE
@@ -506,13 +542,6 @@ void updateExperiment(void) {
 					p_sharedData->demoStateName = "INPUT PROMPT DEMO";
 					//  scale force command of input phantom to 2d shear force
 					// define vector to obtain current input phantom position
-					p_sharedData->p_input_Phantom->getPosition(input_pos);
-					
-					//store position values into respective variable in sharedData structure
-					p_sharedData->inputPhantomPosX = input_pos.x();
-					p_sharedData->inputPhantomPosY = input_pos.y();
-					p_sharedData->inputPhantomPosZ = input_pos.z();
-					
 					// Desired force output
 
 					p_sharedData->outputPhantomForce_Desired_X = -10*p_sharedData->cursorPosX;
