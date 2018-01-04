@@ -2,6 +2,7 @@
 #include "graphics.h"
 #include <math.h>
 #include "shared_data.h"
+#include "Phantom.h"
 using namespace chai3d;
 using namespace std;
 
@@ -41,6 +42,11 @@ static cLabel* ZForce;			  // label to display the z force
 static cLabel* XForce_Desired;
 static cLabel* YForce_Desired;
 static cLabel* ZForce_Desired;
+
+// desired output force in tool frame
+static cLabel* XForce_Desired_Tool;
+static cLabel* YForce_Desired_Tool;
+static cLabel* ZForce_Desired_Tool;
 
 // measured force sensor readings
 static cLabel* XForce_Measured;
@@ -173,6 +179,11 @@ void initGraphics(int argc, char* argv[]) {
 	YForce_Desired = new cLabel(font);
 	ZForce_Desired = new cLabel(font);
 
+	// output phantom desired forces in tool frame
+	XForce_Desired_Tool = new cLabel(font);
+	YForce_Desired_Tool = new cLabel(font);
+	ZForce_Desired_Tool = new cLabel(font);
+
 	XForce_Measured = new cLabel(font);
 	YForce_Measured = new cLabel(font);
 	ZForce_Measured = new cLabel(font);
@@ -201,6 +212,9 @@ void initGraphics(int argc, char* argv[]) {
 	camera->m_frontLayer->addChild(XForce_Desired);
 	camera->m_frontLayer->addChild(YForce_Desired);
 	camera->m_frontLayer->addChild(ZForce_Desired);
+	camera->m_frontLayer->addChild(XForce_Desired_Tool);
+	camera->m_frontLayer->addChild(YForce_Desired_Tool);
+	camera->m_frontLayer->addChild(ZForce_Desired_Tool);
 	camera->m_frontLayer->addChild(XForce_Measured);
 	camera->m_frontLayer->addChild(YForce_Measured);
 	camera->m_frontLayer->addChild(ZForce_Measured);
@@ -223,8 +237,13 @@ void initGraphics(int argc, char* argv[]) {
 	// display keyboard control options
 	printf("\n\n*****************************************\n");
 	printf("f = fullscreen toggle\n");
-	printf("z = (Toggle) Zero Phantom Output Forces\n");
-	printf("t =  DEMO STATE: Force Sensor Testing\n");
+	printf("x = (Toggle) Zero Phantom Output Forces\n");
+	printf("7 =  Decrement Tool Y force\n");
+	printf("9 =  Increment Tool Y force\n");
+	printf("8 =  Increment Tool Z\n");
+	printf("2 =  Decrement Tool Z\n");
+	printf("4 =  Decrement Tool X\n");
+	printf("2 =  Increment Tool X\n");
 	printf("Q/ESC = quit\n");
 	printf("*****************************************\n\n");
 }
@@ -291,9 +310,15 @@ void updateGraphics(void) {
 	YForce_Desired->setString("YForce Des: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Desired_Y)));
 	ZForce_Desired->setString("ZForce Des: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Desired_Z)));
 
+	XForce_Desired_Tool->setString("XForce Des: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Desired_Tool_X)));
+	YForce_Desired_Tool->setString("YForce Des: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Desired_Tool_Y)));
+	ZForce_Desired_Tool->setString("ZForce Des: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Desired_Tool_Z)));
+
 	XForce_Measured->setString("XForce Measured: " + to_string(static_cast<long double>(p_sharedData->force[0])));
 	YForce_Measured->setString("YForce Measured: " + to_string(static_cast<long double>(p_sharedData->force[1])));
 	ZForce_Measured->setString("ZForce Measured: " + to_string(static_cast<long double>(p_sharedData->force[2])));
+
+
 
     cursorPosX->setString("CursorPos X: " + to_string(static_cast<long double>(p_sharedData->cursorPosX)));
 	cursorPosY->setString("CursorPos Y: " + to_string(static_cast<long double>(p_sharedData->cursorPosY)));
@@ -316,6 +341,10 @@ void updateGraphics(void) {
 	XForce_Desired->setLocalPos(10, (int)(windowH - i * XForce_Desired->getHeight()), 0); i++;
 	YForce_Desired->setLocalPos(10, (int)(windowH - i * YForce_Desired->getHeight()), 0); i++;
 	ZForce_Desired->setLocalPos(10, (int)(windowH - i * ZForce_Desired->getHeight()), 0); i++;
+
+	XForce_Desired_Tool->setLocalPos(10, (int)(windowH - i * XForce_Desired_Tool->getHeight()), 0); i++;
+	YForce_Desired_Tool->setLocalPos(10, (int)(windowH - i * YForce_Desired_Tool->getHeight()), 0); i++;
+	ZForce_Desired_Tool->setLocalPos(10, (int)(windowH - i * ZForce_Desired_Tool->getHeight()), 0); i++;
 
 	XForce_Measured->setLocalPos(10, (int)(windowH - i * XForce_Measured->getHeight()), 0); i++;
 	YForce_Measured->setLocalPos(10, (int)(windowH - i * YForce_Measured->getHeight()), 0); i++;
@@ -351,6 +380,10 @@ void updateGraphics(void) {
 	XForce_Desired->setShowEnabled(DEBUG_DISPLAYS);
 	YForce_Desired->setShowEnabled(DEBUG_DISPLAYS);
 	ZForce_Desired->setShowEnabled(DEBUG_DISPLAYS);
+
+	XForce_Desired_Tool->setShowEnabled(DEBUG_DISPLAYS);
+	YForce_Desired_Tool->setShowEnabled(DEBUG_DISPLAYS);
+	ZForce_Desired_Tool->setShowEnabled(DEBUG_DISPLAYS);
 	
 	XForce_Measured->setShowEnabled(DEBUG_DISPLAYS);
 	YForce_Measured->setShowEnabled(DEBUG_DISPLAYS);
@@ -416,7 +449,8 @@ void resizeWindow(int W, int H) {
 
 // dictates response to a keypress within the graphics window
 void respToKey(unsigned char key, int x, int y) {
-
+	
+	printf("\n\nkeypressed: %d\n\n", key);
 	// Zero force
 	if (key == 'x')
 	{
@@ -439,9 +473,12 @@ void respToKey(unsigned char key, int x, int y) {
 	// Force Sensor Testing t
 	if (key == 't')
 	{
+		// start timer for next state of test force and increment 
+		
+		p_sharedData->timer->start(true);
 		// set demoState number and name
-		p_sharedData->demoStateNumber = FORCE_SENSOR_TESTING_DEMO;
-		p_sharedData->demoStateName = "Force Sensor Testing";
+		p_sharedData->experimentStateNumber = PRE_BLOCK;
+		p_sharedData->experimentStateName = "Pre Block";
 
 
 
@@ -451,7 +488,7 @@ void respToKey(unsigned char key, int x, int y) {
 	// nano 17 zero
 	if (key == 'n'){
 	p_sharedData->g_ForceSensor.Zero_Force_Sensor();
-	p_sharedData->message = "Nano17 biased. \nPlease Zero the tactor against the Participant's neck. Press z when complete.";
+	p_sharedData->message = "Nano17 biased. \nPlease Zero the tactor against the Participant's neck. Press Z when complete.";
 }
 
 	// zero position
@@ -460,10 +497,98 @@ void respToKey(unsigned char key, int x, int y) {
 		p_sharedData->outputZeroPosY = p_sharedData->outputPhantomPosY;
 		p_sharedData->outputZeroPosZ = p_sharedData->outputPhantomPosZ;
 		p_sharedData->output_ZeroRotation = p_sharedData->outputPhantomRotation;
-		p_sharedData->experimentStateNumber = IDLE;
-		p_sharedData->message = "Great Now holding position";
+		//p_sharedData->experimentStateNumber = IDLE;
+		p_sharedData->message = "Adjust forces in tool frame: Y (7,9), X (4,6), Z (2,8) by 0.1N. Press T to start Test Force State Machine.";
 
 	}
+
+
+
+
+
+	// 9 to adjust normal force into neck (tool z direction)
+	double force_increment = 0.1; // 0.1N
+	if (key == 57) {
+		p_sharedData->outputPhantomForce_Desired_Tool_Z = p_sharedData->outputPhantomForce_Desired_Tool_Z + force_increment;
+		//transform desired tool force vector to Phantom Premium world frame
+		cVector3d tool_force = cVector3d(p_sharedData->outputPhantomForce_Desired_Tool_X, p_sharedData->outputPhantomForce_Desired_Tool_Y, p_sharedData->outputPhantomForce_Desired_Tool_Z);
+
+		cVector3d force_des = Rotate_Tool_to_Base_Frame(tool_force, p_sharedData->outputPhantomRotation);
+		p_sharedData->outputPhantomForce_Desired_X = force_des.x();
+		p_sharedData->outputPhantomForce_Desired_Y = force_des.y();
+		p_sharedData->outputPhantomForce_Desired_Z = force_des.z();
+
+	}
+
+	// 7 to decrement normal force into neck (tool z direction)
+	if (key == 55) {
+		p_sharedData->outputPhantomForce_Desired_Tool_Z = p_sharedData->outputPhantomForce_Desired_Tool_Z - force_increment;
+		//transform desired tool force vector to Phantom Premium world frame
+		cVector3d tool_force = cVector3d(p_sharedData->outputPhantomForce_Desired_Tool_X, p_sharedData->outputPhantomForce_Desired_Tool_Y, p_sharedData->outputPhantomForce_Desired_Tool_Z);
+
+		cVector3d force_des = Rotate_Tool_to_Base_Frame(tool_force, p_sharedData->outputPhantomRotation);
+		p_sharedData->outputPhantomForce_Desired_X = force_des.x();
+		p_sharedData->outputPhantomForce_Desired_Y = force_des.y();
+		p_sharedData->outputPhantomForce_Desired_Z = force_des.z();
+
+	}
+
+	// 4 to decrement force in tool Y direction
+	if (key == 52) {
+		p_sharedData->outputPhantomForce_Desired_Tool_Y = p_sharedData->outputPhantomForce_Desired_Tool_Y - force_increment;
+		//transform desired tool force vector to Phantom Premium world frame
+		cVector3d tool_force = cVector3d(p_sharedData->outputPhantomForce_Desired_Tool_X, p_sharedData->outputPhantomForce_Desired_Tool_Y, p_sharedData->outputPhantomForce_Desired_Tool_Z);
+
+		cVector3d force_des = Rotate_Tool_to_Base_Frame(tool_force, p_sharedData->outputPhantomRotation);
+		p_sharedData->outputPhantomForce_Desired_X = force_des.x();
+		p_sharedData->outputPhantomForce_Desired_Y = force_des.y();
+		p_sharedData->outputPhantomForce_Desired_Z = force_des.z();
+
+	}
+
+
+	// 6 to increment force in tool Y direction
+	if (key == 54) {
+		p_sharedData->outputPhantomForce_Desired_Tool_Y = p_sharedData->outputPhantomForce_Desired_Tool_Y + force_increment;
+		//transform desired tool force vector to Phantom Premium world frame
+		cVector3d tool_force = cVector3d(p_sharedData->outputPhantomForce_Desired_Tool_X, p_sharedData->outputPhantomForce_Desired_Tool_Y, p_sharedData->outputPhantomForce_Desired_Tool_Z);
+
+		cVector3d force_des = Rotate_Tool_to_Base_Frame(tool_force, p_sharedData->outputPhantomRotation);
+		p_sharedData->outputPhantomForce_Desired_X = force_des.x();
+		p_sharedData->outputPhantomForce_Desired_Y = force_des.y();
+		p_sharedData->outputPhantomForce_Desired_Z = force_des.z();
+
+	}
+
+	// 8 to increment force in tool X direction
+	if (key == 56) {
+		p_sharedData->outputPhantomForce_Desired_Tool_X = p_sharedData->outputPhantomForce_Desired_Tool_X + force_increment;
+		//transform desired tool force vector to Phantom Premium world frame
+		cVector3d tool_force = cVector3d(p_sharedData->outputPhantomForce_Desired_Tool_X, p_sharedData->outputPhantomForce_Desired_Tool_Y, p_sharedData->outputPhantomForce_Desired_Tool_Z);
+
+		cVector3d force_des = Rotate_Tool_to_Base_Frame(tool_force, p_sharedData->outputPhantomRotation);
+		p_sharedData->outputPhantomForce_Desired_X = force_des.x();
+		p_sharedData->outputPhantomForce_Desired_Y = force_des.y();
+		p_sharedData->outputPhantomForce_Desired_Z = force_des.z();
+
+	}
+
+
+	// 6 to increment force in tool X direction
+	if (key == 50) {
+		p_sharedData->outputPhantomForce_Desired_Tool_X = p_sharedData->outputPhantomForce_Desired_Tool_X - force_increment;
+		//transform desired tool force vector to Phantom Premium world frame
+		cVector3d tool_force = cVector3d(p_sharedData->outputPhantomForce_Desired_Tool_X, p_sharedData->outputPhantomForce_Desired_Tool_Y, p_sharedData->outputPhantomForce_Desired_Tool_Z);
+
+		cVector3d force_des = Rotate_Tool_to_Base_Frame(tool_force, p_sharedData->outputPhantomRotation);
+		p_sharedData->outputPhantomForce_Desired_X = force_des.x();
+		p_sharedData->outputPhantomForce_Desired_Y = force_des.y();
+		p_sharedData->outputPhantomForce_Desired_Z = force_des.z();
+
+	}
+
+
+
 
 	// Enable data saving
 	if (key == 'r')

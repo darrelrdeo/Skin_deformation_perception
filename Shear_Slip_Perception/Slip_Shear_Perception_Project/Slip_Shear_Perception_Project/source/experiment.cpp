@@ -1,5 +1,6 @@
 
 #include "experiment.h"
+#include "Phantom.h"
 #include <math.h>
 #include <cmath>
 #include <random>
@@ -29,16 +30,22 @@ cVector3d output_force; // temp var for output PHANTOM currently output force
 int trialsPerExperimentBlock = TRIALS_TRG;	  // trials per experiment block, initialize as training first.
 static const int trialsBeforeBreak = 5;
 static const int trialTime = 30;                  // max time per trial or washout [sec]
+static const int stretchTime_Validation = 5;	 // 5 seconds
 static const int breakTime = 15;                 // break time [sec] between blocks
 static const int preblockTime = 10;               // time to display message [sec]
 static const int trainingTime = 60;
 static const int recordTime = 1;                  // time to record data [sec]
 static const int relaxTime = 10;				// time to relax between large strings of trials within same block
 static const int relax_to_trial_time = 2;       // Message prompt in seconds before starting trial after relaxation, requires button press to continue
-static const int numberOfBlocks = 2;
+static const int force_sense_trial_time = 5;
+static const int numberOfBlocks = 1;
 
-
-
+static const double degree_increment = 10; // degrees increment 
+cMatrix3d R_Z;
+										   // set force vector magnitude 
+double force_vector_magnitude = 1; // 0.4 N
+cVector3d force_vector_rotated;
+cVector3d force_vector;
 
 // Demo Loop Params
 bool demo_start = true;
@@ -86,7 +93,7 @@ void initExperiment(void) {
     // generate filename and open file for writing
     sprintf(filename, "Subj_%d_Session_%d.dat", subjectNum, session);
     p_sharedData->outputFile = fopen(filename,"w");
-    fprintf(p_sharedData->outputFile, "blockNum, trialNum, cursorPosX, cursorPosY, cursorPosZ, cursorPosX_OneAgo, cursorPosY_OneAgo, cursorPosZ_OneAgo, cursorVelX, cursorVelY, cursorVelZ, inputPhantomPosX, inputPhantomPosY, inputPhantomPosZ, inputPhantomVelX, inputPhantomVelY, inputPhantomVelZ, inputPhantomSwitch, outputPhantomPosX, outputPhantomPosY, outputPhantomPosZ, outputPhantomVelX, outputPhantomVelY, outputPhantomVelZ, outputPhantomSwitch, outputPhantomForce_X, outputPhantomForce_Y, outputPhantomForce_Z, joystickPosX, joystickPosY, joystickSwitch, phantomLoopTimeStamp, joystickLoopTimeStamp, experimentLoopTimeStamp,recordTimeStamp, phantomLoopDelta, joystickLoopDelta, experimentLoopDelta, phantomFreq, joystickFreq, experimentFreq, timeElapsed\n");
+    fprintf(p_sharedData->outputFile, "blockNum, trialNum, cursorPosX, cursorPosY, cursorPosZ, cursorPosX_OneAgo, cursorPosY_OneAgo, cursorPosZ_OneAgo, cursorVelX, cursorVelY, cursorVelZ, inputPhantomPosX, inputPhantomPosY, inputPhantomPosZ, inputPhantomVelX, inputPhantomVelY, inputPhantomVelZ, inputPhantomSwitch, outputPhantomPosX, outputPhantomPosY, outputPhantomPosZ, outputPhantomVelX, outputPhantomVelY, outputPhantomVelZ, outputPhantomSwitch, outputPhantomForce_X, outputPhantomForce_Y, outputPhantomForce_Z, outputPhantomForce_Desired_X, outputPhantomForce_Desired_Y, outputPhantomForce_Desired_Z, outputPhantomForce_Desired_Tool_X, outputPhantomForce_Desired_Tool_Y, outputPhantomForce_Desired_Tool_Z, outputPhantomForce_Desired_Tool_angle_deg, joystickPosX, joystickPosY, joystickSwitch, phantomLoopTimeStamp, joystickLoopTimeStamp, experimentLoopTimeStamp,recordTimeStamp, phantomLoopDelta, joystickLoopDelta, experimentLoopDelta, phantomFreq, joystickFreq, experimentFreq, timeElapsed\n");
     
     // enter start-up mode, with force feedback off for safety
    	p_sharedData->opMode = EXPERIMENT;
@@ -224,15 +231,59 @@ void updateExperiment(void) {
 						// ZERO Tactor State
 					case ZERO_TACTOR : 
 						p_sharedData->experimentStateName = "ZERO_TACTOR";
-
+						// button press in graphic window z and n in graphics.cpp
 
 						// display All measured forces from Nano17
+						p_sharedData->timer->setTimeoutPeriodSeconds(preblockTime);
 
 
 						break;
 
 
+					case TEST_FORCE:
+						p_sharedData->experimentStateName = "Test Force";
 
+
+
+						// construct initial force vector to be rotated (in tool frame)
+						force_vector = cVector3d(1, 0, 0);
+						force_vector = force_vector*force_vector_magnitude;
+
+						// rotate vector:
+
+						R_Z.set(cos(p_sharedData->outputPhantomForce_Desired_Tool_angle_deg*PI/180), -sin(p_sharedData->outputPhantomForce_Desired_Tool_angle_deg*PI / 180), 0, sin(p_sharedData->outputPhantomForce_Desired_Tool_angle_deg*PI / 180), cos(p_sharedData->outputPhantomForce_Desired_Tool_angle_deg*PI / 180), 0, 0, 0, 1);
+						force_vector_rotated = R_Z*force_vector;
+
+						force_vector_rotated = Rotate_Tool_to_Base_Frame(force_vector_rotated, p_sharedData->outputPhantomRotation);
+
+						// command desired forces to phantom
+						//send force to hapic device
+						p_sharedData->outputPhantomForce_Desired_X = force_vector_rotated.x();
+						p_sharedData->outputPhantomForce_Desired_Y = force_vector_rotated.y();
+						p_sharedData->outputPhantomForce_Desired_Z = force_vector_rotated.z();
+
+						// save one timestep
+						saveOneTimeStep();
+
+						// wait for time to expire and increment angle to display and send to small down
+						//and turn off all forces and send to record. 
+						if (p_sharedData->timer->timeoutOccurred()) {
+							// turn off all forces
+							setOutputForceToZero();
+
+							// increment angle of desired force vector
+							p_sharedData->outputPhantomForce_Desired_Tool_angle_deg = p_sharedData->outputPhantomForce_Desired_Tool_angle_deg + degree_increment;
+
+							recordTrial();
+							// set/start timer (from zero) and begin block of trials
+							p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
+							p_sharedData->timer->start(true);
+							p_sharedData->experimentStateNumber = RECORD;
+
+
+						}
+
+						break;
 
 
 
@@ -291,6 +342,9 @@ void updateExperiment(void) {
 							// prepare for 1st trial
 							p_sharedData->trialNum = 1;
 
+
+							// set desired angle 
+							p_sharedData->outputPhantomForce_Desired_Tool_angle_deg = 0;
 						
 
 						
@@ -303,9 +357,9 @@ void updateExperiment(void) {
 							//initializeCursorState();		
 
 							// set/start timer (from zero) and begin block of trials
-							p_sharedData->timer->setTimeoutPeriodSeconds(trialTime);
+							p_sharedData->timer->setTimeoutPeriodSeconds(stretchTime_Validation);
 							p_sharedData->timer->start(true);
-							p_sharedData->experimentStateNumber = EXPERIMENT;
+							p_sharedData->experimentStateNumber = TEST_FORCE;
 
 						}
 						break; // END: PRE BLOCK STATE
@@ -321,7 +375,7 @@ void updateExperiment(void) {
 						if (p_sharedData->timer->timeoutOccurred()) {
 							
 							
-
+							/*
 							// If it is time for a relax
 							if((p_sharedData->trialNum % trialsBeforeBreak) == 0){
 								p_sharedData->experimentStateNumber = RELAX;
@@ -344,18 +398,24 @@ void updateExperiment(void) {
 							p_sharedData->experimentStateNumber = EXPERIMENT;
 
 							}
+							*/
+
+							// set/start timer (from zero) and return to block
 
 							// prep for next trial
 							(p_sharedData->trialNum)++;
 
-							//only iterate to the next hole if we haven't reach the end of the experiment, otherwise we will get an error.
-							if (p_sharedData->trialNum<trialsPerExperimentBlock)
-							{
-								
-
-
+							// if finished, send to thank you state
+							if (p_sharedData->outputPhantomForce_Desired_Tool_angle_deg >= 360) {
+								p_sharedData->experimentStateNumber = THANKS;
 
 							}
+							else {
+								p_sharedData->timer->setTimeoutPeriodSeconds(stretchTime_Validation);
+								p_sharedData->timer->start(true);
+								p_sharedData->experimentStateNumber = TEST_FORCE;
+							}
+
 						}
 						break; // END RECORD STATE
 					
@@ -618,3 +678,9 @@ void initializeCursorState(void){
 
 
 
+void setOutputForceToZero(void) {
+	p_sharedData->outputPhantomForce_Desired_X = 0;
+	p_sharedData->outputPhantomForce_Desired_Y = 0;
+	p_sharedData->outputPhantomForce_Desired_Z = 0;
+
+}

@@ -21,6 +21,6 @@ void updateExperiment(void);
 void closeExperiment(void);
 
 void initializeCursorState(void);
-
+void setOutputForceToZero(void);
 
 #endif  // EXPERIMENT_H

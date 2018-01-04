@@ -88,6 +88,13 @@ void setup(void) {
 	p_sharedData->outputPhantomForce_Desired_X = 0;
 	p_sharedData->outputPhantomForce_Desired_Y = 0;
 	p_sharedData->outputPhantomForce_Desired_Z = 0;
+	p_sharedData->outputPhantomForce_Desired_Tool_X = 0;
+	p_sharedData->outputPhantomForce_Desired_Tool_Y = 0;
+	p_sharedData->outputPhantomForce_Desired_Tool_Z = 0;
+
+	// output phantom desired force vector (tool) end
+	p_sharedData->outputPhantomForce_Desired_Tool_angle_deg = 0;
+
 
 	// Output Phantom current force output
 	p_sharedData->outputPhantomForce_X = 0;
@@ -252,6 +259,19 @@ void saveOneTimeStep(void) {
 	temp.d_outputPhantomForce_Y = p_sharedData->outputPhantomForce_Y;
 	temp.d_outputPhantomForce_Z = p_sharedData->outputPhantomForce_Z;
 
+
+
+	// Output Phantom desired force output
+	temp.d_outputPhantomForce_Desired_X = p_sharedData->outputPhantomForce_Desired_X;
+	temp.d_outputPhantomForce_Desired_Y = p_sharedData->outputPhantomForce_Desired_Y;
+	temp.d_outputPhantomForce_Desired_Z = p_sharedData->outputPhantomForce_Desired_Z;
+	temp.d_outputPhantomForce_Desired_Tool_X = p_sharedData->outputPhantomForce_Desired_Tool_X;
+	temp.d_outputPhantomForce_Desired_Tool_Y = p_sharedData->outputPhantomForce_Desired_Tool_Y;
+	temp.d_outputPhantomForce_Desired_Tool_Z = p_sharedData->outputPhantomForce_Desired_Tool_Z;
+
+	// output phantom desired force vector angle (deg)
+	temp.d_outputPhantomForce_Desired_Tool_angle_deg = p_sharedData->outputPhantomForce_Desired_Tool_angle_deg;
+
 	// force sensing
 	for (int i = 0; i<3; i++) temp.d_force[i] = p_sharedData->force[i];
 
@@ -290,7 +310,7 @@ void recordTrial(void) {
     
     // iterate over vector, writing one time step at a time
     for (vector<save_data>::iterator it = p_sharedData->trialData.begin() ; it != p_sharedData->trialData.end(); ++it) {
-        fprintf(p_sharedData->outputFile,"%d %d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %lu %lu %lu %lu %lu %lu %lu %f %f %f %f",
+        fprintf(p_sharedData->outputFile,"%d %d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %lu %lu %lu %lu %lu %lu %lu %f %f %f %f",
                 	it->d_blockNum,
 					it->d_trialNum,
 					it->d_cursorPosX,
@@ -319,6 +339,13 @@ void recordTrial(void) {
 					it->d_outputPhantomForce_X,
 					it->d_outputPhantomForce_Y,
 					it->d_outputPhantomForce_Z,
+					it->d_outputPhantomForce_Desired_X,
+					it->d_outputPhantomForce_Desired_Y,
+					it->d_outputPhantomForce_Desired_Z,
+					it->d_outputPhantomForce_Desired_Tool_X,
+					it->d_outputPhantomForce_Desired_Tool_Y,
+					it->d_outputPhantomForce_Desired_Tool_Z,
+					it->d_outputPhantomForce_Desired_Tool_angle_deg,
 					it->d_force[0],
 					it->d_force[1],
 					it->d_force[2],

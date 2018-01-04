@@ -36,6 +36,7 @@ using namespace std;
 // Experiment States
 #define START_UP	0
 #define ZERO_TACTOR				14
+#define TEST_FORCE  17
 #define IDLE		16
 #define PRE_TRAINING 15
 #define PRE_BLOCK   5
@@ -112,6 +113,13 @@ typedef struct {
 	double d_outputPhantomForce_Desired_X;
 	double d_outputPhantomForce_Desired_Y;
 	double d_outputPhantomForce_Desired_Z;
+
+	double d_outputPhantomForce_Desired_Tool_X;
+	double d_outputPhantomForce_Desired_Tool_Y;
+	double d_outputPhantomForce_Desired_Tool_Z;
+
+	// Output phantom desired force vector Tool angle
+	double d_outputPhantomForce_Desired_Tool_angle_deg;
 
 	// Output Phantom current force output
 	double d_outputPhantomForce_X;
@@ -258,6 +266,13 @@ typedef struct {
 	double outputPhantomForce_Desired_X;
 	double outputPhantomForce_Desired_Y;
 	double outputPhantomForce_Desired_Z;
+	double outputPhantomForce_Desired_Tool_X;
+	double outputPhantomForce_Desired_Tool_Y;
+	double outputPhantomForce_Desired_Tool_Z;
+
+	// output phantom desired force vector angle (deg)
+	double outputPhantomForce_Desired_Tool_angle_deg;
+
 
 	// Output Phantom current force output
 	double outputPhantomForce_X;

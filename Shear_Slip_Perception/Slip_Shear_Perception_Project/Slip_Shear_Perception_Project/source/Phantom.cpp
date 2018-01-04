@@ -233,3 +233,21 @@ void closePhantom(void) {
 }
 
 
+
+// transformation matrix function for contact point (tool tip) to base frame
+// input parameters are tool_force_desired (in tool frame) and tool orientation (rotation matrix between current tool frame and 
+cVector3d Rotate_Tool_to_Base_Frame(cVector3d tool_force_desired, cMatrix3d tool_orientation) {
+
+	cVector3d force_desired = cVector3d(0,0,0);
+	force_desired = tool_orientation*tool_force_desired;
+
+
+	return force_desired;
+}
+
+
+
+// transformation matrix function for tool tip to premium base frame
+
+
+
