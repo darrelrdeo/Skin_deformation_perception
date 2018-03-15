@@ -70,6 +70,7 @@ static cLabel* output_phantomPosX;
 static cLabel* output_phantomPosY;
 static cLabel* output_phantomPosZ;
 
+static cLabel* outputPhantomForce_Desired_Tool_angle_deg;
 
 
 
@@ -196,6 +197,7 @@ void initGraphics(int argc, char* argv[]) {
 	output_phantomPosY = new cLabel(font);
 	output_phantomPosZ = new cLabel(font);
 
+	outputPhantomForce_Desired_Tool_angle_deg = new cLabel(font);
 
 	// add labels to frontLayer
 	//-----------------------------------------------
@@ -231,6 +233,7 @@ void initGraphics(int argc, char* argv[]) {
 	camera->m_frontLayer->addChild(output_phantomPosY);
 	camera->m_frontLayer->addChild(output_phantomPosZ);
 
+	camera->m_frontLayer->addChild(outputPhantomForce_Desired_Tool_angle_deg);
 
 
 
@@ -310,9 +313,9 @@ void updateGraphics(void) {
 	YForce_Desired->setString("YForce Des: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Desired_Y)));
 	ZForce_Desired->setString("ZForce Des: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Desired_Z)));
 
-	XForce_Desired_Tool->setString("XForce Des: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Desired_Tool_X)));
-	YForce_Desired_Tool->setString("YForce Des: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Desired_Tool_Y)));
-	ZForce_Desired_Tool->setString("ZForce Des: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Desired_Tool_Z)));
+	XForce_Desired_Tool->setString("XForce Des_Tool: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Desired_Tool_X)));
+	YForce_Desired_Tool->setString("YForce Des_Tool: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Desired_Tool_Y)));
+	ZForce_Desired_Tool->setString("ZForce Des_Tool: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Desired_Tool_Z)));
 
 	XForce_Measured->setString("XForce Measured: " + to_string(static_cast<long double>(p_sharedData->force[0])));
 	YForce_Measured->setString("YForce Measured: " + to_string(static_cast<long double>(p_sharedData->force[1])));
@@ -328,6 +331,8 @@ void updateGraphics(void) {
 	input_phantomPosY->setString("Input Phantom Pos Y: " + to_string(static_cast<long double>(p_sharedData->inputPhantomPosY)));
 	input_phantomPosZ->setString("Input Phantom Pos Z: " + to_string(static_cast<long double>(p_sharedData->inputPhantomPosZ)));
 	
+	outputPhantomForce_Desired_Tool_angle_deg->setString("Desired Tool Angle: " + to_string(static_cast<long double>(p_sharedData->outputPhantomForce_Desired_Tool_angle_deg)));
+
 	int i = 1;
 	opMode->setLocalPos(10, (int)(windowH - i * opMode->getHeight()), 0); i++;
     input_device->setLocalPos(10, (int) (windowH - i * input_device->getHeight()), 0); i++;
@@ -357,6 +362,9 @@ void updateGraphics(void) {
 	input_phantomPosX->setLocalPos(10, (int) (windowH - i * input_phantomPosX->getHeight()),0); i++;
 	input_phantomPosY->setLocalPos(10, (int) (windowH - i * input_phantomPosY->getHeight()),0); i++;
 	input_phantomPosZ->setLocalPos(10, (int) (windowH - i * input_phantomPosZ->getHeight()),0); i++;
+
+	outputPhantomForce_Desired_Tool_angle_deg->setLocalPos(10, (int)(windowH - i * input_phantomPosX->getHeight()), 0); i++;
+
 
 	trial->setLocalPos((int) (windowW - trial->getWidth() - 10), (int) (windowH - 2.0 * trial->getHeight()), 0);
 	
@@ -393,6 +401,8 @@ void updateGraphics(void) {
 	cursorPosY->setShowEnabled(DEBUG_DISPLAYS);
 	cursorPosZ->setShowEnabled(DEBUG_DISPLAYS);
 	message->setShowEnabled(DEBUG_DISPLAYS);
+
+	outputPhantomForce_Desired_Tool_angle_deg->setShowEnabled(DEBUG_DISPLAYS);
 
 	if (p_sharedData->opMode==DEMO)
 		{	
@@ -473,6 +483,9 @@ void respToKey(unsigned char key, int x, int y) {
 	// Force Sensor Testing t
 	if (key == 't')
 	{
+		// log the desired z normal force
+		p_sharedData->outputNormalForce_Set = p_sharedData->outputPhantomForce_Desired_Tool_Z;
+
 		// start timer for next state of test force and increment 
 		
 		p_sharedData->timer->start(true);
@@ -483,6 +496,44 @@ void respToKey(unsigned char key, int x, int y) {
 
 
 	}
+
+
+	// BMI Tracking Direction sub-state machine
+	if (key == 'c')
+	{
+		// log the desired z normal force
+		p_sharedData->outputNormalForce_Set = p_sharedData->outputPhantomForce_Desired_Tool_Z;
+
+		// start timer for next state of BMI tracking 
+
+		p_sharedData->timer->start(true);
+		// set demoState number and name
+		p_sharedData->experimentStateNumber = PRE_BLOCK;
+		p_sharedData->experimentStateName = "Pre Block";
+
+		// set next state to go to after Pre_Block
+		p_sharedData->nextExperimentStateNumber = TRACK_BMI_DIRECTION;
+	}
+
+	// BMI Tracking sub-state machine
+	if (key == 'b')
+	{
+		// log the desired z normal force
+		p_sharedData->outputNormalForce_Set = p_sharedData->outputPhantomForce_Desired_Tool_Z;
+
+		// start timer for next state of BMI tracking 
+
+		p_sharedData->timer->start(true);
+		// set demoState number and name
+		p_sharedData->experimentStateNumber = PRE_BLOCK;
+		p_sharedData->experimentStateName = "Pre Block";
+	
+		// set next state to go to after Pre_Block
+		p_sharedData->nextExperimentStateNumber = TRACK_BMI;
+	
+	}
+
+
 
 
 	// nano 17 zero
@@ -498,8 +549,25 @@ void respToKey(unsigned char key, int x, int y) {
 		p_sharedData->outputZeroPosZ = p_sharedData->outputPhantomPosZ;
 		p_sharedData->output_ZeroRotation = p_sharedData->outputPhantomRotation;
 		//p_sharedData->experimentStateNumber = IDLE;
-		p_sharedData->message = "Adjust forces in tool frame: Y (7,9), X (4,6), Z (2,8) by 0.1N. Press T to start Test Force State Machine.";
+		p_sharedData->message = "Adjust forces in tool frame: Z (7,9), Y (4,6), X (2,8) by 0.1N. \nPress (T) for Test Force \n(B) for BMI Velocity tracking \n(C) for BMI Velocity Direction tracking \n(D) for Direction Perception user study";
 
+
+
+	}
+
+	// Direction Perception Study (d keypress)
+	if (key == 'd') {
+		// log the desired z normal force
+		p_sharedData->outputNormalForce_Set = p_sharedData->outputPhantomForce_Desired_Tool_Z;
+		// start timer for next state of BMI tracking 
+
+		p_sharedData->timer->start(true);
+		// set demoState number and name
+		p_sharedData->experimentStateNumber = PRE_BLOCK;
+		p_sharedData->experimentStateName = "Pre Block";
+
+		// set next state to go to after Pre_Block
+		p_sharedData->nextExperimentStateNumber = PERCEPTION_EXPERIMENT_TRIAL;
 	}
 
 

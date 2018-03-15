@@ -34,17 +34,20 @@ using namespace std;
 #define FS_INIT  "Dev1/ai0:5"
 
 // Experiment States
-#define START_UP	0
-#define ZERO_TACTOR				14
-#define TEST_FORCE  17
-#define IDLE		16
-#define PRE_TRAINING 15
-#define PRE_BLOCK   5
-#define TRAINING	7
-#define RECORD		2
-#define RELAX		3
-#define BREAK		4
-#define THANKS		6
+#define START_UP		0
+#define ZERO_TACTOR		14
+#define TEST_FORCE		17
+#define TRACK_BMI		18
+#define TRACK_BMI_DIRECTION 19
+#define PERCEPTION_EXPERIMENT_TRIAL 20
+#define IDLE			16
+#define PRE_TRAINING	15
+#define PRE_BLOCK		5
+#define TRAINING		7
+#define RECORD			2
+#define RELAX			3
+#define BREAK			4
+#define THANKS			6
 
 // Demo States
 #define START_UP_DEMO			 7
@@ -73,6 +76,17 @@ typedef struct {
 	int d_blockNum;			// number of current block
 	string d_blockName;		// name of the current block (i.e. Haptics_Block, Vision_Block)
 	int d_trialNum;			// current trial number
+
+	// BrainGate data params
+	double d_velocity_force_scalar;
+	double d_position_force_scalar;
+	double d_Fmax;
+	double d_velocity_MaxForce_scalar;
+	DWORD d_BMI_command_update_time;
+	double d_scaled_velX_command;
+	double d_scaled_velY_command;
+	double d_scaled_posX_command;
+	double d_scaled_posY_command;
 
 	// cursor parameters
 	double d_cursorPosX;	// current cursor x position
@@ -125,6 +139,8 @@ typedef struct {
 	double d_outputPhantomForce_X;
 	double d_outputPhantomForce_Y;
 	double d_outputPhantomForce_Z;
+
+
 
 	// Force Sensor
 	double d_force[3];
@@ -182,6 +198,7 @@ typedef struct {
 	
 	// state machine params
 	int experimentStateNumber;
+	int nextExperimentStateNumber;
 	int demoStateNumber;
 	string experimentStateName;
 	string demoStateName;
@@ -201,6 +218,9 @@ typedef struct {
 	double outputZeroPosZ;
 	cMatrix3d output_ZeroRotation;
 
+	// variable to hold the z force into the neck upon completion of initialization and setup of end effector, in tool frame
+	double outputNormalForce_Set;
+
 	double cursorPosX_OneAgo;
 	double cursorPosY_OneAgo;
 	double cursorPosZ_OneAgo;
@@ -208,6 +228,21 @@ typedef struct {
 	double cursorVelX;
 	double cursorVelY;
 	double cursorVelZ;
+
+
+	// BrainGate data params
+	double velocity_force_scalar;
+	double position_force_scalar;
+	double Fmax;
+	double velocity_MaxForce_scalar;
+	DWORD BMI_command_update_time;
+	double scaled_velX_command;
+	double scaled_velY_command;
+	double scaled_posX_command;
+	double scaled_posY_command;
+
+
+
 
 	// sensing
 	bool sensing;

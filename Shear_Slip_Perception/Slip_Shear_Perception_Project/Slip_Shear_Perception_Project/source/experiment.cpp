@@ -13,15 +13,7 @@ using namespace std;
 
 //#define DEBUG 
 
-/*
-// Data variables we need to record during the record step
-cVector3d cursor_pos; //temporary variable for haptic tool cursor position
-cVector3d input_pos;  // temporary variable for input PHANTOM position 
-cVector3d input_vel;  // temporary variable for input PHANTOM velocity 
-cVector3d output_pos;  // temporary variable for output PHANTOM position 
-cVector3d output_vel;  // temporary variable for output PHANTOM velocity 
-cVector3d output_force; // temp var for output PHANTOM currently output force
-*/
+
 
 // Experiment State Machine params
 #define TRIALS_TRG 8
@@ -34,7 +26,7 @@ static const int stretchTime_Validation = 5;	 // 5 seconds
 static const int breakTime = 15;                 // break time [sec] between blocks
 static const int preblockTime = 10;               // time to display message [sec]
 static const int trainingTime = 60;
-static const int recordTime = 1;                  // time to record data [sec]
+static const int recordTime = 5;                  // time to record data [sec]
 static const int relaxTime = 10;				// time to relax between large strings of trials within same block
 static const int relax_to_trial_time = 2;       // Message prompt in seconds before starting trial after relaxation, requires button press to continue
 static const int force_sense_trial_time = 5;
@@ -42,7 +34,8 @@ static const int numberOfBlocks = 1;
 
 static const double degree_increment = 10; // degrees increment 
 cMatrix3d R_Z;
-										   // set force vector magnitude 
+										  
+// set force vector magnitude 
 double force_vector_magnitude = 1; // 0.4 N
 cVector3d force_vector_rotated;
 cVector3d force_vector;
@@ -61,6 +54,33 @@ static int subjectNum;           // subject number
 static int session;              // session number for subject
 static char filename[100];       // output filename
 static int nextExperimentState;  // so state machine knows where to go next
+
+// BCI File params
+static char posx_filename[100];
+static char posy_filename[100];
+static char velx_filename[100];
+static char vely_filename[100];
+
+// BCI command arrays
+std::vector<float>posx_BCI;
+std::vector<float>posy_BCI;
+std::vector<float>velx_BCI;
+std::vector<float>vely_BCI;
+static int num_command_elements = 0;
+static int BMI_command_itorator = 0;
+
+
+// Perception Force Profiles params
+const int delta_angle_deg = 30; // degrees of perception angle wedges
+const int num_wedges = 360/delta_angle_deg;
+const int ramp_duration_ms = 1000; // 1 second ramp
+const int delta_time_ms = 1; // 1 ms
+const int num_force_ind = ramp_duration_ms / delta_time_ms;
+float perception_angles_tf[num_wedges];
+float force_profiles[num_wedges][num_force_ind][2]; // [force vector angle][index of force profile in tool frame][forces in tool plane XY]
+
+
+
 
 int blockNumberIndex = 0;
 
@@ -82,6 +102,42 @@ void linkSharedDataToExperiment(shared_data& sharedData) {
 
 // set-up for experiment
 void initExperiment(void) {
+	// BCI filename read params
+	sprintf(posx_filename, "cursorPosx.csv");
+	sprintf(posy_filename, "cursorPosy.csv");
+	sprintf(velx_filename, "cursorVelx.csv");
+	sprintf(vely_filename, "cursorVely.csv");
+	float in_number;
+	ifstream File;
+	
+	File.open(posx_filename);
+	while (File >> in_number) {
+		posx_BCI.push_back(in_number);
+		
+		// add 1 to the count of command elements in array
+		num_command_elements = num_command_elements + 1;
+	}
+	printf("\n\n num_elements = %d\n\n", num_command_elements);
+	File.close();
+
+	File.open(posy_filename);
+	while (File >> in_number) {
+		posy_BCI.push_back(in_number);
+	}
+	File.close();
+
+	File.open(velx_filename);
+	while (File >> in_number) {
+		velx_BCI.push_back(in_number);
+	}
+	File.close();
+
+	File.open(vely_filename);
+	while (File >> in_number) {
+		vely_BCI.push_back(in_number);
+	}
+ 	File.close();
+
 
     // get subject number, control paradigm, and session number
     printf("\nEnter subject number: ");
@@ -93,7 +149,7 @@ void initExperiment(void) {
     // generate filename and open file for writing
     sprintf(filename, "Subj_%d_Session_%d.dat", subjectNum, session);
     p_sharedData->outputFile = fopen(filename,"w");
-    fprintf(p_sharedData->outputFile, "blockNum, trialNum, cursorPosX, cursorPosY, cursorPosZ, cursorPosX_OneAgo, cursorPosY_OneAgo, cursorPosZ_OneAgo, cursorVelX, cursorVelY, cursorVelZ, inputPhantomPosX, inputPhantomPosY, inputPhantomPosZ, inputPhantomVelX, inputPhantomVelY, inputPhantomVelZ, inputPhantomSwitch, outputPhantomPosX, outputPhantomPosY, outputPhantomPosZ, outputPhantomVelX, outputPhantomVelY, outputPhantomVelZ, outputPhantomSwitch, outputPhantomForce_X, outputPhantomForce_Y, outputPhantomForce_Z, outputPhantomForce_Desired_X, outputPhantomForce_Desired_Y, outputPhantomForce_Desired_Z, outputPhantomForce_Desired_Tool_X, outputPhantomForce_Desired_Tool_Y, outputPhantomForce_Desired_Tool_Z, outputPhantomForce_Desired_Tool_angle_deg, joystickPosX, joystickPosY, joystickSwitch, phantomLoopTimeStamp, joystickLoopTimeStamp, experimentLoopTimeStamp,recordTimeStamp, phantomLoopDelta, joystickLoopDelta, experimentLoopDelta, phantomFreq, joystickFreq, experimentFreq, timeElapsed\n");
+    fprintf(p_sharedData->outputFile, "blockNum, trialNum, cursorPosX, cursorPosY, cursorPosZ, cursorPosX_OneAgo, cursorPosY_OneAgo, cursorPosZ_OneAgo, cursorVelX, cursorVelY, cursorVelZ, inputPhantomPosX, inputPhantomPosY, inputPhantomPosZ, inputPhantomVelX, inputPhantomVelY, inputPhantomVelZ, inputPhantomSwitch, outputPhantomPosX, outputPhantomPosY, outputPhantomPosZ, outputPhantomVelX, outputPhantomVelY, outputPhantomVelZ, outputPhantomSwitch, outputPhantomForce_X, outputPhantomForce_Y, outputPhantomForce_Z, outputPhantomForce_Desired_X, outputPhantomForce_Desired_Y, outputPhantomForce_Desired_Z, outputPhantomForce_Desired_Tool_X, outputPhantomForce_Desired_Tool_Y, outputPhantomForce_Desired_Tool_Z, outputPhantomForce_Desired_Tool_angle_deg, Measured_Force_X, Measured_Force_Y, Measured_Force_Z, joystickPosX, joystickPosY, joystickSwitch, phantomLoopTimeStamp, joystickLoopTimeStamp, experimentLoopTimeStamp,recordTimeStamp, phantomLoopDelta, joystickLoopDelta, experimentLoopDelta, velocity_force_scalar, position_force_scalar, Fmax, velocity_MaxForce_scalar, BMI_command_update_time_MS, scaled_posX_command, scaled_posY_command, scaled_velX_command, scaled_velY_command, phantomFreq, joystickFreq, experimentFreq, timeElapsed\n");
     
     // enter start-up mode, with force feedback off for safety
    	p_sharedData->opMode = EXPERIMENT;
@@ -106,6 +162,9 @@ void initExperiment(void) {
 
 	//initialize random seed for randomization of trials
 	srand(timeGetTime());
+
+	// load velocity and position commands
+
 
 }
 
@@ -143,63 +202,6 @@ void updateExperiment(void) {
 			// stop timer for experiment loop
 			p_sharedData->m_expLoopTimer.stop();
 
-			/*
-			//calculate the cursorVel
-			if (delta!=0)
-				{
-					p_sharedData->cursorVelX = (p_sharedData->cursorPosX-p_sharedData->cursorPosX_OneAgo)/delta;
-					p_sharedData->cursorVelY = (p_sharedData->cursorPosY-p_sharedData->cursorPosY_OneAgo)/delta;
-					p_sharedData->cursorVelZ = (p_sharedData->cursorPosZ-p_sharedData->cursorPosZ_OneAgo)/delta;
-				}
-			else
-				{
-					p_sharedData->cursorVelX = p_sharedData->cursorPosX-p_sharedData->cursorPosX_OneAgo;
-					p_sharedData->cursorVelY = p_sharedData->cursorPosY-p_sharedData->cursorPosY_OneAgo;
-					p_sharedData->cursorVelZ = p_sharedData->cursorPosZ-p_sharedData->cursorPosZ_OneAgo;
-				}
-	
-			//store current position as old position
-			p_sharedData->cursorPosX_OneAgo = p_sharedData->cursorPosX;
-			p_sharedData->cursorPosY_OneAgo = p_sharedData->cursorPosY;
-			p_sharedData->cursorPosZ_OneAgo = p_sharedData->cursorPosZ;
-
-			// poll the input and output devices and record their states.
-
-			// get INPUT PHANTOM position and velocity vectors
-            p_sharedData->p_input_Phantom->getPosition(input_pos);
-            p_sharedData->p_input_Phantom->getLinearVelocity(input_vel);
-
-			//store position values into respective variable in sharedData structure
-			p_sharedData->inputPhantomPosX = input_pos.x();
-			p_sharedData->inputPhantomPosY = input_pos.y();
-			p_sharedData->inputPhantomPosZ = input_pos.z();
-
-			// store velocity values into respective vars in sharedData structure
-            p_sharedData->inputPhantomVelX = input_vel.x();
-			p_sharedData->inputPhantomVelY = input_vel.y();
-			p_sharedData->inputPhantomVelZ = input_vel.z();
-
-			// get current forces output by OUTPUT PHANTOM device
-			p_sharedData->p_output_Phantom->getForce(output_force);
-			p_sharedData->outputPhantomForce_X = output_force.x();
-			p_sharedData->outputPhantomForce_Y = output_force.y();
-			p_sharedData->outputPhantomForce_Z = output_force.z();
-
-			// get OUTPUT PHANTOM position and velocity vectors
-            p_sharedData->p_output_Phantom->getPosition(output_pos);
-            p_sharedData->p_output_Phantom->getLinearVelocity(output_vel);
-
-			//store position values into respective variable in sharedData structure
-			p_sharedData->outputPhantomPosX = output_pos.x();
-			p_sharedData->outputPhantomPosY = output_pos.y();
-			p_sharedData->outputPhantomPosZ = output_pos.z();
-
-			// store velocity values into respective vars in sharedData structure
-            p_sharedData->outputPhantomVelX = output_vel.x();
-			p_sharedData->outputPhantomVelY = output_vel.y();
-			p_sharedData->outputPhantomVelZ = output_vel.z();
-
-*/
 
 
 //*********************EXPERIMENT STATE MACHINE************************************		
@@ -249,11 +251,14 @@ void updateExperiment(void) {
 						force_vector = cVector3d(1, 0, 0);
 						force_vector = force_vector*force_vector_magnitude;
 
+
 						// rotate vector:
 
 						R_Z.set(cos(p_sharedData->outputPhantomForce_Desired_Tool_angle_deg*PI/180), -sin(p_sharedData->outputPhantomForce_Desired_Tool_angle_deg*PI / 180), 0, sin(p_sharedData->outputPhantomForce_Desired_Tool_angle_deg*PI / 180), cos(p_sharedData->outputPhantomForce_Desired_Tool_angle_deg*PI / 180), 0, 0, 0, 1);
 						force_vector_rotated = R_Z*force_vector;
 
+						// add z force into neck
+						force_vector.z(p_sharedData->outputNormalForce_Set);
 						force_vector_rotated = Rotate_Tool_to_Base_Frame(force_vector_rotated, p_sharedData->outputPhantomRotation);
 
 						// command desired forces to phantom
@@ -285,6 +290,126 @@ void updateExperiment(void) {
 
 						break;
 
+
+
+
+
+
+					
+					case TRACK_BMI:
+						p_sharedData->experimentStateName = "Track BMI";
+
+						if (BMI_command_itorator < num_command_elements/2) {
+							//update current force to be output by BMI command updated at 1KHz
+							p_sharedData->scaled_posX_command = p_sharedData->position_force_scalar*posx_BCI[BMI_command_itorator];
+							p_sharedData->scaled_posY_command = p_sharedData->position_force_scalar*posy_BCI[BMI_command_itorator];
+							p_sharedData->scaled_velX_command = p_sharedData->velocity_force_scalar*velx_BCI[BMI_command_itorator];
+							p_sharedData->scaled_velY_command = p_sharedData->velocity_force_scalar*vely_BCI[BMI_command_itorator];
+
+							// increment itorator
+							BMI_command_itorator = BMI_command_itorator + 1;
+
+							// construct initial force vector to be rotated (in tool frame)
+							force_vector = cVector3d(p_sharedData->scaled_velX_command, p_sharedData->scaled_velY_command, p_sharedData->outputNormalForce_Set);
+
+							// update desired tool forces
+							p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
+							p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
+							p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
+
+							// rotate tool to base frame
+							force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
+
+							
+
+							// command desired forces to phantom
+							//send force to hapic device
+							p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
+							p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
+							p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
+
+							// save one timestep
+							saveOneTimeStep();
+						}
+						else // end of tracking
+						{
+							// set all forces to zero
+							setOutputForceToZero();
+							
+							// send to record
+							recordTrial();
+							// set/start timer (from zero) and begin block of trials
+							p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
+							p_sharedData->timer->start(true);
+							p_sharedData->experimentStateNumber = RECORD;
+
+
+						}
+
+
+						break;
+
+
+
+
+					case TRACK_BMI_DIRECTION:
+						p_sharedData->experimentStateName = "Track BMI Direction";
+
+						if (BMI_command_itorator < num_command_elements / 2) {
+							//update current force to be output by BMI command updated at 1KHz
+
+							float V_mag = sqrt(((velx_BCI[BMI_command_itorator]) *(velx_BCI[BMI_command_itorator])) + ((vely_BCI[BMI_command_itorator])*(vely_BCI[BMI_command_itorator])));
+							if (V_mag != 0) {
+								p_sharedData->velocity_MaxForce_scalar = p_sharedData->Fmax / V_mag;
+							}
+							else {
+								p_sharedData->velocity_MaxForce_scalar = 0;
+							}
+							p_sharedData->scaled_velX_command = velx_BCI[BMI_command_itorator] * p_sharedData->velocity_MaxForce_scalar;
+							p_sharedData->scaled_velY_command = vely_BCI[BMI_command_itorator] * p_sharedData->velocity_MaxForce_scalar;
+
+							// increment itorator
+							BMI_command_itorator = BMI_command_itorator + 1;
+
+							// construct initial force vector to be rotated (in tool frame)
+							force_vector = cVector3d(p_sharedData->scaled_velX_command, p_sharedData->scaled_velY_command, p_sharedData->outputNormalForce_Set);
+
+							// update desired tool forces
+							p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
+							p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
+							p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
+
+							// rotate tool to base frame
+							force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
+
+
+
+							// command desired forces to phantom
+							//send force to hapic device
+							p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
+							p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
+							p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
+
+							// save one timestep
+							saveOneTimeStep();
+						}
+						else // end of tracking
+						{
+							// set all forces to zero
+							setOutputForceToZero();
+
+							// send to record
+							recordTrial();
+							// set/start timer (from zero) and begin block of trials
+							p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
+							p_sharedData->timer->start(true);
+							p_sharedData->experimentStateNumber = RECORD;
+
+
+						}
+
+
+						break;
 
 
 					case IDLE :
@@ -346,20 +471,24 @@ void updateExperiment(void) {
 							// set desired angle 
 							p_sharedData->outputPhantomForce_Desired_Tool_angle_deg = 0;
 						
+							//
 
-						
-
-							//initialize noise standard deviation
-							if(blockNumberIndex==1){/*do nothing to current sigma*/}
+					
 		
 
 							// Initialize cursor state
 							//initializeCursorState();		
 
-							// set/start timer (from zero) and begin block of trials
-							p_sharedData->timer->setTimeoutPeriodSeconds(stretchTime_Validation);
+							// set/start timer (from zero) and begin block of trials, uncomment for Stretch validation trials
+						/*	p_sharedData->timer->setTimeoutPeriodSeconds(stretchTime_Validation);
 							p_sharedData->timer->start(true);
 							p_sharedData->experimentStateNumber = TEST_FORCE;
+							*/
+
+							//p_sharedData->experimentStateNumber = TRACK_BMI;
+							//p_sharedData->experimentStateNumber = TRACK_BMI_DIRECTION;
+
+							p_sharedData->experimentStateNumber = p_sharedData->nextExperimentStateNumber;
 
 						}
 						break; // END: PRE BLOCK STATE
@@ -405,8 +534,8 @@ void updateExperiment(void) {
 							// prep for next trial
 							(p_sharedData->trialNum)++;
 
-							// if finished, send to thank you state
-							if (p_sharedData->outputPhantomForce_Desired_Tool_angle_deg >= 360) {
+							// if finished, send to thank you state, uncomment for Test_Force State Machine
+/*							if (p_sharedData->outputPhantomForce_Desired_Tool_angle_deg >= 360) {
 								p_sharedData->experimentStateNumber = THANKS;
 
 							}
@@ -415,7 +544,10 @@ void updateExperiment(void) {
 								p_sharedData->timer->start(true);
 								p_sharedData->experimentStateNumber = TEST_FORCE;
 							}
+							*/
 
+
+							p_sharedData->experimentStateNumber = THANKS;
 						}
 						break; // END RECORD STATE
 					
@@ -682,5 +814,27 @@ void setOutputForceToZero(void) {
 	p_sharedData->outputPhantomForce_Desired_X = 0;
 	p_sharedData->outputPhantomForce_Desired_Y = 0;
 	p_sharedData->outputPhantomForce_Desired_Z = 0;
+
+}
+
+
+
+
+
+void setup_Perception_Force_Profiles(void) {
+	/*const int delta_angle_deg = 30; // degrees of perception angle wedges
+	const int num_wedges = 360 / delta_angle_deg;
+	const int ramp_duration_ms = 1000; // 1 second ramp
+	const int delta_time_ms = 1; // 1 ms
+	const int num_force_ind = ramp_duration_ms / delta_time_ms;
+	float perception_angles_tf[num_wedges];
+	float force_profiles[num_wedges][num_force_ind][2];
+	*/
+	float delta_F = p_sharedData->Fmax / num_force_ind;
+	for (int i = 0; i < num_wedges; i++) {
+		// 
+
+
+	}
 
 }

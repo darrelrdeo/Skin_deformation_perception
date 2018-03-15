@@ -86,8 +86,10 @@ int main(int argc, char* argv[]) {
 	linkSharedDataToExperiment(*sharedData);
 	linkSharedDataToGraphics(*sharedData);
 
-	// call setup function
+	// call setup functions
 	setup();
+
+	// call setup of perception force profiles
 
 	//seed rand() function
 	srand(sharedData->rand_seed);

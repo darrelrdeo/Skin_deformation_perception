@@ -23,4 +23,6 @@ void closeExperiment(void);
 void initializeCursorState(void);
 void setOutputForceToZero(void);
 
+void setup_Perception_Force_Profiles(void);
+
 #endif  // EXPERIMENT_H

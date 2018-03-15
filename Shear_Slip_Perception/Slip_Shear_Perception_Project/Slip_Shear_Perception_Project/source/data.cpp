@@ -37,10 +37,17 @@ void setup(void) {
 	// state initializations
 	p_sharedData->experimentStateName = " ";
 	p_sharedData->experimentStateNumber = 0;
+	p_sharedData->nextExperimentStateNumber = 0;
 	p_sharedData->blockNum = 0;			// number of current block
 	p_sharedData->blockName = "init";		// name of the current block (i.e. Haptics_Block, Vision_Block)
 	p_sharedData->trialNum = 0;			// current trial number
 
+										// BrainGate data params
+	p_sharedData->velocity_force_scalar = 0.000542236026376;
+	p_sharedData->position_force_scalar = 0.000417101138737;
+	p_sharedData->Fmax = 0.3;			// shear force maximum
+	p_sharedData->velocity_MaxForce_scalar = 0; // computed scalar by dividing max shear force (Fmax) by velocity Magnitude (Vmag)
+	p_sharedData->BMI_command_update_time = 1; //ms
 
 	// cursor parameters
 	p_sharedData->cursorPosX = 0;	// current cursor x position NOTE: This should be set to our desired z position in the space
@@ -80,7 +87,7 @@ void setup(void) {
 	p_sharedData->outputZeroPosY = 0;
 	p_sharedData->outputZeroPosZ = 0;
 	p_sharedData->output_ZeroRotation = cMatrix3d(0, 0, 0, 0, 0, 0, 0, 0, 0);
-
+	p_sharedData->outputNormalForce_Set = 0;
 
 	p_sharedData->outputPhantomSwitch = 0;
 
@@ -164,6 +171,8 @@ void setup(void) {
 	p_sharedData->outputPhantom_spec = p_sharedData->p_output_Phantom->getSpecifications();
 
 
+
+
 	// ask for operating mode (defaults to demo)
     printf("\nIs this going to be an Experiment(E) or Demo(D)?\n");
     cin >> response;
@@ -203,6 +212,9 @@ void setup(void) {
 		p_sharedData->opMode = DEMO;
 
 	}	
+
+
+
 }
 
 // save one time step of data to vector for current trial
@@ -218,6 +230,15 @@ void saveOneTimeStep(void) {
 	temp.d_blockName = p_sharedData->blockName;		// name of the current block (i.e. Haptics_Block, Vision_Block)
 	temp.d_trialNum = p_sharedData->trialNum;			// current trial number
 	
+	temp.d_velocity_force_scalar = p_sharedData->velocity_force_scalar;
+	temp.d_position_force_scalar = p_sharedData->position_force_scalar;
+	temp.d_Fmax = p_sharedData->Fmax;
+	temp.d_velocity_MaxForce_scalar = p_sharedData->velocity_MaxForce_scalar;
+	temp.d_BMI_command_update_time = p_sharedData->BMI_command_update_time; //ms
+	temp.d_scaled_posX_command = p_sharedData->scaled_posX_command;
+	temp.d_scaled_posY_command = p_sharedData->scaled_posY_command;
+	temp.d_scaled_velX_command = p_sharedData->scaled_velX_command;
+	temp.d_scaled_velY_command = p_sharedData->scaled_velY_command;
 
 	// cursor parameters
 	temp.d_cursorPosX = p_sharedData->cursorPosX;	// current cursor x position
@@ -307,10 +328,11 @@ void saveOneTimeStep(void) {
 
 // write data to file from current trial
 void recordTrial(void) {
-    
+ 
+
     // iterate over vector, writing one time step at a time
     for (vector<save_data>::iterator it = p_sharedData->trialData.begin() ; it != p_sharedData->trialData.end(); ++it) {
-        fprintf(p_sharedData->outputFile,"%d %d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %lu %lu %lu %lu %lu %lu %lu %f %f %f %f",
+        fprintf(p_sharedData->outputFile,"%d %d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %lu %lu %lu %lu %lu %lu %lu %f %f %f %f %lu %f %f %f %f %f %f %f %f",
                 	it->d_blockNum,
 					it->d_trialNum,
 					it->d_cursorPosX,
@@ -359,6 +381,15 @@ void recordTrial(void) {
 					it->d_phantomLoopDelta,
 					it->d_joystickLoopDelta,
 					it->d_experimentLoopDelta,
+					it->d_velocity_force_scalar,
+					it->d_position_force_scalar,
+					it->d_Fmax,
+				    it->d_velocity_MaxForce_scalar,
+					it->d_BMI_command_update_time,
+					it->d_scaled_posX_command,
+					it->d_scaled_posY_command,
+					it->d_scaled_velX_command,
+					it->d_scaled_velY_command,
 					it->d_phantomFreq,
 					it->d_joystickFreq,
 					it->d_experimentFreq,
