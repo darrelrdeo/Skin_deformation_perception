@@ -77,13 +77,18 @@ static int BMI_command_itorator = 0;
 
 
 // Perception Force Profiles params
+const int num_single_stimulus_application = 3; // number of times a unique stimulus is applied
 const int delta_angle_deg = 30; // degrees of perception angle wedges
 const int num_wedges = 360/delta_angle_deg;
+const int num_perception_trials = num_wedges*num_single_stimulus_application; // number of total perception trials
+int Randomized_stimulus_angle_array[num_perception_trials]; // this array will hold the randomized trial progression
+int Randomized_stimulus_angleIndex_array[num_perception_trials]; // this will be the target index 
 const int ramp_duration_ms = 1000; // 1 second ramp
 const double ramp_duration_s = ramp_duration_ms*0.001;
 const int delta_time_ms = 1; // 1 ms
 const int num_force_ind = ramp_duration_ms / delta_time_ms;
-float perception_angles_tf[num_wedges];
+int curr_force_ind = 0;
+int perception_angles_tf[num_wedges];
 float force_profiles[num_wedges][num_force_ind][2]; // [force vector angle][index of force profile in tool frame][forces in tool plane XY]
 cMatrix3d R_z_perception;											// Perception Study Defines
 cVector3d unitVect_zero_deg(1, 0, 0);
@@ -441,6 +446,9 @@ void updateExperiment(void) {
 						if (BMI_command_itorator < num_command_elements / 2) {
 							//update current force to be output by BMI command updated at 1KHz
 
+							// save one timestep
+							saveOneTimeStep();
+
 							float V_mag = sqrt(((velx_BCI[BMI_command_itorator]) *(velx_BCI[BMI_command_itorator])) + ((vely_BCI[BMI_command_itorator])*(vely_BCI[BMI_command_itorator])));
 							if (V_mag != 0) {
 								p_sharedData->velocity_MaxForce_scalar = p_sharedData->Fmax / V_mag;
@@ -473,8 +481,7 @@ void updateExperiment(void) {
 							p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
 							p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
 
-							// save one timestep
-							saveOneTimeStep();
+
 						}
 						else // end of tracking
 						{
@@ -556,6 +563,41 @@ void updateExperiment(void) {
 						
 							//
 
+							// switch on what the next state is and setup
+							switch (p_sharedData->nextExperimentStateNumber) {
+								case PERCEPTION_EXPERIMENT_TRIAL :
+									// reset curr_force_ind to iterate through 
+									curr_force_ind = 0;
+
+									// obtain current trials target number (index) 
+									p_sharedData->outputPhantomForce_Desired_Tool_angle_deg = Randomized_stimulus_angle_array[p_sharedData->trialNum - 1];
+
+									// set first force before jumping to next state
+									// construct initial force vector to be rotated (in tool frame)
+									force_vector = cVector3d(force_profiles[Randomized_stimulus_angleIndex_array[p_sharedData->trialNum - 1]][curr_force_ind][0], force_profiles[Randomized_stimulus_angleIndex_array[p_sharedData->trialNum - 1]][curr_force_ind][1], p_sharedData->outputNormalForce_Set);
+
+									// update desired tool forces
+									p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
+									p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
+									p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
+
+									// rotate tool to base frame
+									force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
+
+
+
+									// command desired forces to phantom
+									//send force to hapic device
+									p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
+									p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
+									p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
+
+								break;
+
+
+
+
+							}
 					
 		
 
@@ -587,94 +629,51 @@ void updateExperiment(void) {
 						// save data from time step
 						p_sharedData->timeElapsed = p_sharedData->timer->getCurrentTimeSeconds();
 
-						if (p_sharedData->trialNum <= trialsPerExperimentBlock) // if the trial is within the block save data
-						{
-							saveOneTimeStep();
-						}
 
-						// check if the Experiment block is complete (all trials completed)
-						if (p_sharedData->trialNum > trialsPerExperimentBlock) {
+						saveOneTimeStep();
+						if (p_sharedData->trialNum <= num_perception_trials) {
+							if (curr_force_ind < num_force_ind) {
+								force_vector = cVector3d(force_profiles[Randomized_stimulus_angleIndex_array[p_sharedData->trialNum - 1]][curr_force_ind][0], force_profiles[Randomized_stimulus_angleIndex_array[p_sharedData->trialNum - 1]][curr_force_ind][1], p_sharedData->outputNormalForce_Set);
 
-							// give subject a break before Experiment block
-							p_sharedData->message = "Break: " + to_string(static_cast<long long>(breakTime)) + " seconds until next experiment block.";
+								// update desired tool forces
+								p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
+								p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
+								p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
 
-							// set/start timer (from zero) send to break with break time
-							p_sharedData->timer->setTimeoutPeriodSeconds(breakTime);
-							p_sharedData->timer->start(true);
-							p_sharedData->experimentStateNumber = BREAK;
+								// rotate tool to base frame
+								force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
 
 
 
-							// Iterate to next block type and parameters
-							blockNumberIndex++;
+								// command desired forces to phantom
+								//send force to hapic device
+								p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
+								p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
+								p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
 
-							if (blockNumberIndex > numberOfBlocks) {
+								curr_force_ind = curr_force_ind + 1;
+							}
+							else {
+								recordTrial();
 
-								// thank subject and terminate experiment
-								p_sharedData->message = "Thank you.";
-								p_sharedData->experimentStateNumber = THANKS;
-								p_sharedData->experimentStateName = "THANKS";
-								closeExperiment();
+								// set/start timer (from zero) and send to record state
+								p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
+								p_sharedData->timer->start(true);
+								p_sharedData->experimentStateNumber = RECORD;
+								p_sharedData->experimentStateName = "RECORD";
+								p_sharedData->nextExperimentStateNumber = PERCEPTION_EXPERIMENT_TRIAL;
+
 
 							}
-
-
 						}
 						else {
-							// if switch is pressed, denote as end of trial
-							if ((p_sharedData->inputPhantomSwitch == 1) || (p_sharedData->joystickSwitch == 1)) {
 
-								// turn off switch
-								p_sharedData->inputPhantomSwitch = 0;
-								p_sharedData->message = "You pressed a button!";
-
-								// start recording trial data
-								saveOneTimeStep();
-								recordTrial();
-
-								// set/start timer (from zero) and send to record state
-								p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
-								p_sharedData->timer->start(true);
-								p_sharedData->experimentStateNumber = RECORD;
-
-
-
+							// thank subject and terminate experiment
+							p_sharedData->message = "Thank you.";
+							p_sharedData->experimentStateNumber = THANKS;
+							p_sharedData->experimentStateName = "THANKS";
+							closeExperiment();
 							}
-
-							// unsuccessful trial (i.e., time expired)
-							if (p_sharedData->timer->timeoutOccurred()) {
-
-								p_sharedData->message = "Time expired!";
-
-								// start recording trial data
-								saveOneTimeStep();
-								recordTrial();
-
-								// set/start timer (from zero) and send to record state
-								p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
-								p_sharedData->timer->start(true);
-								p_sharedData->experimentStateNumber = RECORD;
-							}
-						}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 						break;
 
@@ -717,8 +716,21 @@ void updateExperiment(void) {
 
 							// set/start timer (from zero) and return to block
 
-							// prep for next trial
-							(p_sharedData->trialNum)++;
+
+							switch (p_sharedData->nextExperimentStateNumber) {
+								case PERCEPTION_EXPERIMENT_TRIAL :
+
+									// prep for next trial
+									(p_sharedData->trialNum)++;
+
+									// reset current force index and increment the trial number index
+									curr_force_ind = 0;
+
+									// obtain current trials target number (index) 
+									p_sharedData->outputPhantomForce_Desired_Tool_angle_deg = Randomized_stimulus_angle_array[p_sharedData->trialNum - 1];
+								break;
+
+							}
 
 							// if finished, send to thank you state, uncomment for Test_Force State Machine
 /*							if (p_sharedData->outputPhantomForce_Desired_Tool_angle_deg >= 360) {
@@ -1011,6 +1023,11 @@ void setOutputForceToZero(void) {
 void setup_Perception_Force_Profiles(void) {
 
 	/*const int delta_angle_deg = 30; // degrees of perception angle wedges
+	const int num_single_stimulus_application = 3; // number of times a unique stimulus is applied
+	const int delta_angle_deg = 30; // degrees of perception angle wedges
+	const int num_wedges = 360/delta_angle_deg;
+	const int num_perception_trials = num_wedges*num_single_stimulus_application; // number of total perception trials
+	const int Randomized_stimulus_angle_array[num_perception_trials]; // this array will hold the randomized trial progression
 	const int num_wedges = 360 / delta_angle_deg;
 	const int ramp_duration_ms = 1000; // 1 second ramp
 	const int delta_time_ms = 1; // 1 ms
@@ -1040,4 +1057,75 @@ void setup_Perception_Force_Profiles(void) {
 		}
 	}
 
+	// randomization of perception cueues 
+	randomizeTargets();
+
+
+
+}
+
+
+
+
+
+
+
+
+
+void randomizeTargets(void) {
+	for (int j = 0; j < num_single_stimulus_application; j++) {
+		// Temporary randomized array with every target number
+		int tempRandTargetArray[num_wedges];
+		int k = 0;
+		for (k = 0; k < num_wedges; k++) {
+			tempRandTargetArray[k] = perception_angles_tf[k];
+		}
+		srand(time(NULL));
+		randomize(tempRandTargetArray, num_wedges);
+
+		// now fill the corresponding Randomized_stimulus_angle_array
+		for (k = 0; k < num_wedges; k++) {
+			Randomized_stimulus_angle_array[j*num_wedges+k] = tempRandTargetArray[k];
+			Randomized_stimulus_angleIndex_array[j*num_wedges + k] = k;
+		}
+
+	}
+
+
+	printf("RandTargets: ");
+	int i = 0;
+	for (i = 0; i < num_perception_trials; i++) printf(" %d ", Randomized_stimulus_angle_array[i]);
+
+}
+
+
+
+
+// A utility function to swap to integers
+void swap(int *a, int *b)
+{
+	int temp = *a;
+	*a = *b;
+	*b = temp;
+}
+
+
+
+// A function to generate a random permutation of arr[]
+void randomize(int arr[], int n)
+{
+	// Use a different seed value so that we don't get same
+	// result each time we run this program
+	srand(time(NULL));
+
+	// Start from the last element and swap one by one. We don't
+	// need to run for the first element that's why i > 0
+	for (int i = n - 1; i > 0; i--)
+	{
+		// Pick a random index from 0 to i
+		int j = rand() % (i + 1);
+
+		// Swap arr[i] with the element at random index
+		swap(&arr[i], &arr[j]);
+	}
 }

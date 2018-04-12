@@ -24,5 +24,8 @@ void initializeCursorState(void);
 void setOutputForceToZero(void);
 
 void setup_Perception_Force_Profiles(void);
+void randomizeTargets(void);
+void randomize(int arr[], int n);
+void swap(int *a, int *b);
 
 #endif  // EXPERIMENT_H

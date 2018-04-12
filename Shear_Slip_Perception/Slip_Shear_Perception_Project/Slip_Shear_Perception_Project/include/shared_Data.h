@@ -108,6 +108,9 @@ typedef struct {
 	double d_cursorVelY;
 	double d_cursorVelZ;
 
+	// perception study
+	int d_currPerceptionAngle;
+
 	// Input Phantom state
 	double d_inputPhantomPosX;
 	double d_inputPhantomPosY;
@@ -212,6 +215,10 @@ typedef struct {
 	int blockNum;			// number of current block
 	string blockName;		// name of the current block (i.e. Haptics_Block, Vision_Block)
 	int trialNum;			// current trial number
+
+	// perception study information
+	int currPerceptionAngle;
+	
 
 
 	// cursor parameters

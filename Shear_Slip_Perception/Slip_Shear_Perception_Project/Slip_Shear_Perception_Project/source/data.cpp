@@ -64,6 +64,9 @@ void setup(void) {
 	p_sharedData->cursorVelY = 0;
 	p_sharedData->cursorVelZ = 0;
 
+	// Perception Study
+	p_sharedData->currPerceptionAngle = 0;
+
 	// Input Phantom state
 	p_sharedData->inputPhantomPosX = 0;
 	p_sharedData->inputPhantomPosY = 0;
@@ -254,6 +257,9 @@ void saveOneTimeStep(void) {
 	temp.d_cursorVelX = p_sharedData->cursorVelX;
 	temp.d_cursorVelY = p_sharedData->cursorVelY;
 	temp.d_cursorVelZ = p_sharedData->cursorVelZ;
+
+	// perception
+	temp.d_currPerceptionAngle = p_sharedData->currPerceptionAngle;
 
 	// Input Phantom state
 	temp.d_inputPhantomPosX = p_sharedData->inputPhantomPosX;
