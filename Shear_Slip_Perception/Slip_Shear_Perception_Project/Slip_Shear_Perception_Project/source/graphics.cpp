@@ -498,6 +498,27 @@ void respToKey(unsigned char key, int x, int y) {
 	}
 
 
+	// BMI Tracking Non-linear sub-state machine
+	if (key == 'k')
+	{
+		// update the velocity scalar 
+		p_sharedData->velocity_force_scalar = p_sharedData->Fmax / BMI_Max_Vel_Nonlinear;
+		p_sharedData->position_force_scalar = p_sharedData->Fmax / BMI_Max_Pos_Nonlinear;
+
+		// log the desired z normal force
+		p_sharedData->outputNormalForce_Set = p_sharedData->outputPhantomForce_Desired_Tool_Z;
+
+		// start timer for next state of BMI tracking 
+
+		p_sharedData->timer->start(true);
+		// set demoState number and name
+		p_sharedData->experimentStateNumber = PRE_BLOCK;
+		p_sharedData->experimentStateName = "Pre Block";
+
+		// set next state to go to after Pre_Block
+		p_sharedData->nextExperimentStateNumber = TRACK_BMI_NONLINEAR;
+	}
+
 	// BMI Tracking Direction sub-state machine
 	if (key == 'c')
 	{
@@ -518,6 +539,10 @@ void respToKey(unsigned char key, int x, int y) {
 	// BMI Tracking sub-state machine
 	if (key == 'b')
 	{
+		// update the velocity scalar 
+		p_sharedData->velocity_force_scalar = p_sharedData->Fmax / BMI_Max_Vel;
+		p_sharedData->position_force_scalar = p_sharedData->Fmax / BMI_Max_Pos;
+
 		// log the desired z normal force
 		p_sharedData->outputNormalForce_Set = p_sharedData->outputPhantomForce_Desired_Tool_Z;
 
@@ -549,7 +574,7 @@ void respToKey(unsigned char key, int x, int y) {
 		p_sharedData->outputZeroPosZ = p_sharedData->outputPhantomPosZ;
 		p_sharedData->output_ZeroRotation = p_sharedData->outputPhantomRotation;
 		//p_sharedData->experimentStateNumber = IDLE;
-		p_sharedData->message = "Adjust forces in tool frame: Z (7,9), Y (4,6), X (2,8) by 0.1N. \nPress (T) for Test Force \n(B) for BMI Velocity tracking \n(C) for BMI Velocity Direction tracking \n(D) for Direction Perception user study";
+		p_sharedData->message = "Adjust forces in tool frame: Z (7,9), Y (4,6), X (2,8) by 0.1N. \nPress (T) for Test Force \n(B) for BMI Velocity tracking \n(C) for BMI Velocity Direction tracking \n(K) for BMI Nonlinear VelocityTracking \n(D) for Direction Perception user study";
 
 
 

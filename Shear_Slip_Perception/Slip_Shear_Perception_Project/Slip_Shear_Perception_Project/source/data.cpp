@@ -43,9 +43,11 @@ void setup(void) {
 	p_sharedData->trialNum = 0;			// current trial number
 
 										// BrainGate data params
-	p_sharedData->velocity_force_scalar = 0.000542236026376;
-	p_sharedData->position_force_scalar = 0.000417101138737;
-	p_sharedData->Fmax = 0.3;			// shear force maximum
+
+	p_sharedData->Fmax = 0.4;			// shear force maximum
+	p_sharedData->velocity_force_scalar = p_sharedData->Fmax / BMI_Max_Vel;//0.000542236026376;
+	p_sharedData->position_force_scalar = p_sharedData->Fmax / BMI_Max_Vel; //0.000417101138737;
+
 	p_sharedData->velocity_MaxForce_scalar = 0; // computed scalar by dividing max shear force (Fmax) by velocity Magnitude (Vmag)
 	p_sharedData->BMI_command_update_time = 1; //ms
 

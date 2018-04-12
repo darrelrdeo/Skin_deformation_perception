@@ -33,12 +33,19 @@ using namespace std;
 #define FS_CALIB "C:\\CalibrationFiles\\FT11289.cal"
 #define FS_INIT  "Dev1/ai0:5"
 
+// BMI Max Velocity to expect for nonlinear saturation or continuous 
+#define BMI_Max_Vel 737 //for continuous
+#define BMI_Max_Pos 959 //for continuous
+#define BMI_Max_Vel_Nonlinear 212
+#define BMI_Max_Pos_Nonlinear 225
+
 // Experiment States
 #define START_UP		0
 #define ZERO_TACTOR		14
 #define TEST_FORCE		17
 #define TRACK_BMI		18
 #define TRACK_BMI_DIRECTION 19
+#define TRACK_BMI_NONLINEAR 21
 #define PERCEPTION_EXPERIMENT_TRIAL 20
 #define IDLE			16
 #define PRE_TRAINING	15
