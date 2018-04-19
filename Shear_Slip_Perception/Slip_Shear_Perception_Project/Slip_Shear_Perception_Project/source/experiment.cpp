@@ -76,6 +76,11 @@ float force_profiles[num_wedges][num_force_ind][2]; // [force vector angle][inde
 cMatrix3d R_z_perception;											// Perception Study Defines
 cVector3d unitVect_zero_deg(1, 0, 0);
 
+// zeroing normal force into neck
+const int z_ramp_duration_ms = 500; // 0.5 seconds
+const int num_z_force_ind = z_ramp_duration_ms / delta_time_ms;
+int curr_z_force_ind = 0;
+float z_force_profiles[num_z_force_ind];
 
 static shared_data* p_sharedData;  // structure for sharing data between threads
 
@@ -540,7 +545,7 @@ void updateExperiment(void) {
 							curr_force_ind = curr_force_ind + 1;
 						}
 
-						if (p_sharedData->timer->timeoutOccurred() && p_sharedData->nextPerceptionStim_flag) { // AND this with a conditional press N for next flag
+						if (p_sharedData->timer->timeoutOccurred() && p_sharedData->nextPerceptionStim_flag) { // AND this with a conditional press M for next flag
 							p_sharedData->timer->stop();
 							p_sharedData->nextPerceptionStim_flag = false;
 							recordTrial();
@@ -548,6 +553,7 @@ void updateExperiment(void) {
 							p_sharedData->experimentStateNumber = RETURN_SHEAR_TO_ZERO;
 							p_sharedData->nextExperimentStateNumber = RECORD;
 							curr_force_ind = num_force_ind - 1;
+							p_sharedData->message = "Returning Tactor to Home. Please Wait.";
 						}
 					}
 					else {
@@ -564,6 +570,8 @@ void updateExperiment(void) {
 /*************************************************************************************************************************************************/
 /* RETURN SHEAR TO ZERO STATE *************************************************************************************************************/
 				case RETURN_SHEAR_TO_ZERO:
+					// update experiment name
+					p_sharedData->experimentStateName = "RETURN SHEAR TO ZERO";
 
 					if (curr_force_ind >= 0) {
 						// decrement shear forces
@@ -584,16 +592,91 @@ void updateExperiment(void) {
 						p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
 
 						curr_force_ind--;
-
 					}
-					else { // when completed decrementing then send to record state
+					else { // when completed decrementing then send to return normal force to zero
+						curr_z_force_ind = num_z_force_ind - 1 ;
+						p_sharedData->experimentStateNumber = RETURN_NORMAL_TO_ZERO;
+						p_sharedData->nextExperimentStateNumber = SET_NORMAL;
 
-						p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
-						p_sharedData->timer->start(true);
-						p_sharedData->experimentStateNumber = RECORD;
-						p_sharedData->nextExperimentStateNumber = PERCEPTION_EXPERIMENT_TRIAL;
 					}
 					break;
+/*************************************************************************************************************************************************/
+/* RETURN NORMAL TO ZERO STATE *************************************************************************************************************/
+				case RETURN_NORMAL_TO_ZERO:
+					// update experiment name
+					p_sharedData->experimentStateName = "RETURN NORMAL FORCE TO ZERO";
+
+					if (curr_z_force_ind >= 0) {
+						// decrement normal force
+						force_vector = cVector3d(0, 0, z_force_profiles[curr_z_force_ind]);
+
+						// update desired tool forces
+						p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
+						p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
+						p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
+
+						// rotate tool to base frame
+						force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
+
+						// command desired forces to phantom
+						//send force to hapic device
+						p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
+						p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
+						p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
+
+						curr_z_force_ind--;
+						
+					}
+					else { // when completed decrementing then send to incrementing state
+						curr_z_force_ind = 0;
+						p_sharedData->experimentStateNumber = SET_NORMAL;
+						p_sharedData->nextExperimentStateNumber = RECORD;
+					}
+					break;
+/*************************************************************************************************************************************************/
+/* RETURN NORMAL TO OUTPUT STATE *************************************************************************************************************/
+				case SET_NORMAL:
+					// update experiment name
+					p_sharedData->experimentStateName = "RETURN NORMAL FORCE TO HOME";
+
+					if (curr_z_force_ind <= num_z_force_ind) {
+						// incremental normal force
+						force_vector = cVector3d(0, 0, z_force_profiles[curr_z_force_ind]);
+
+						// update desired tool forces
+						p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
+						p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
+						p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
+
+						// rotate tool to base frame
+						force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
+
+						// command desired forces to phantom
+						//send force to hapic device
+						p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
+						p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
+						p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
+
+						curr_z_force_ind++;
+
+					}
+					else { // when completed incrementing then wait for buttonPress for next stimuli
+						p_sharedData->message = "Tactor Homed! Press (M) to administer next stimuli.";
+
+						// Wait for button M press to proceed
+						if (p_sharedData->nextPerceptionStim_flag) {
+
+							// toggle flag off
+							p_sharedData->nextPerceptionStim_flag = false;
+							p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
+							p_sharedData->timer->start(true);
+							p_sharedData->experimentStateNumber = RECORD;
+							p_sharedData->nextExperimentStateNumber = PERCEPTION_EXPERIMENT_TRIAL;
+							p_sharedData->message = " ";
+					}
+					}
+					break;
+
 /*************************************************************************************************************************************************/
 /* RECORD STATE **********************************************************************************************************************************/
 				case RECORD:
@@ -719,6 +802,13 @@ void setup_Perception_Force_Profiles(void) {
 			force_profiles[i][j][0] = temp.x();
 			force_profiles[i][j][1] = temp.y();
 		}
+	}
+
+	// fill z_force profile to increment and decrement to zero
+	float delta_F_z = p_sharedData->outputNormalForce_Set / num_z_force_ind;
+	for (int j = 0; j < num_wedges; j++) {
+		double currForceMag = j*delta_F_z;
+		z_force_profiles[j] = currForceMag;
 	}
 
 	// randomization of perception cueues 

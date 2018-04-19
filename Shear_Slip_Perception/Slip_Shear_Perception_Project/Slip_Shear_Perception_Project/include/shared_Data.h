@@ -48,6 +48,8 @@ using namespace std;
 #define TRACK_BMI_NONLINEAR 21
 #define PERCEPTION_EXPERIMENT_TRIAL 20
 #define RETURN_SHEAR_TO_ZERO 22
+#define RETURN_NORMAL_TO_ZERO 23
+#define SET_NORMAL	24
 #define IDLE			16
 #define PRE_TRAINING	15
 #define PRE_BLOCK		5
