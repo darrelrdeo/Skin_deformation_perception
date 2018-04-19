@@ -411,22 +411,9 @@ void updateGraphics(void) {
 
 		}
 
-	/*
-	input_phantomVelX->setShowEnabled(DEBUG_DISPLAYS);
-	input_phantomVelY->setShowEnabled(DEBUG_DISPLAYS);
-	input_phantomVelZ->setShowEnabled(DEBUG_DISPLAYS);
-    output_phantomPosX->setShowEnabled(DEBUG_DISPLAYS);
-	output_phantomPosY->setShowEnabled(DEBUG_DISPLAYS);
-	output_phantomPosZ->setShowEnabled(DEBUG_DISPLAYS);
-    output_phantomVelX->setShowEnabled(DEBUG_DISPLAYS);
-	output_phantomVelY->setShowEnabled(DEBUG_DISPLAYS);
-	output_phantomVelZ->setShowEnabled(DEBUG_DISPLAYS);
-	cursorVelX->setShowEnabled(DEBUG_DISPLAYS);
-	cursorVelY->setShowEnabled(DEBUG_DISPLAYS);
-	cursorVelZ->setShowEnabled(DEBUG_DISPLAYS);
-	*/
 
-	if(p_sharedData->experimentStateNumber == EXPERIMENT) message->setShowEnabled(false);
+
+	
 
     // render and (smoothly, via buffer swapping) display world
     camera->renderView(windowW, windowH);
@@ -574,7 +561,7 @@ void respToKey(unsigned char key, int x, int y) {
 		p_sharedData->outputZeroPosZ = p_sharedData->outputPhantomPosZ;
 		p_sharedData->output_ZeroRotation = p_sharedData->outputPhantomRotation;
 		//p_sharedData->experimentStateNumber = IDLE;
-		p_sharedData->message = "Adjust forces in tool frame: Z (7,9), Y (4,6), X (2,8) by 0.1N. \nPress (T) for Test Force \n(B) for BMI Velocity tracking \n(C) for BMI Velocity Direction tracking \n(K) for BMI Nonlinear VelocityTracking \n(D) for Direction Perception user study";
+		p_sharedData->message = "Adjust forces in tool frame: Z (7,9), Y (4,6), X (2,8) by 0.1N. \n Press (T) for Test Force \n (B) for BMI Velocity tracking \n (C) for BMI Velocity Direction tracking \n (K) for BMI Nonlinear VelocityTracking \n (D) for Direction Perception user study";
 
 
 
@@ -582,6 +569,7 @@ void respToKey(unsigned char key, int x, int y) {
 
 	// Direction Perception Study (d keypress)
 	if (key == 'd') {
+		p_sharedData->message = "After stimulus, press m for next stimulus.";
 		// log the desired z normal force
 		p_sharedData->outputNormalForce_Set = p_sharedData->outputPhantomForce_Desired_Tool_Z;
 		// start timer for next state of BMI tracking 
@@ -684,23 +672,10 @@ void respToKey(unsigned char key, int x, int y) {
 
 
 	// Enable data saving
-	if (key == 'r')
+	if (key == 'm')
 	{
-		/*
-		// set recording flag
-		if (p_sharedData->saveData_FLAG) {
-			// flip flag to zero force
-			p_sharedData->saveData_FLAG = false;
-		}
-		else {
-			p_sharedData->saveData_FLAG = true;
-		}
-
-		p_sharedData->demoStateNumber = FORCE_SENSOR_TESTING_DEMO;
-		p_sharedData->demoStateName = "Force Sensor Testing";
-		*/
-
-
+		p_sharedData->nextPerceptionStim_flag = true;
+		p_sharedData->message = "After stimulus, press m for next stimulus.";
 	}
 
 

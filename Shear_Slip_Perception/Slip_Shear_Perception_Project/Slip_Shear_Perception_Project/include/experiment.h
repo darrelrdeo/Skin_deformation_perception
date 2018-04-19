@@ -20,12 +20,11 @@ void initDemo(void);
 void updateExperiment(void);
 void closeExperiment(void);
 
-void initializeCursorState(void);
 void setOutputForceToZero(void);
 
 void setup_Perception_Force_Profiles(void);
 void randomizeTargets(void);
-void randomize(int arr[], int n);
+void randomize(int arr[], int arrInd[], int n);
 void swap(int *a, int *b);
 
 #endif  // EXPERIMENT_H

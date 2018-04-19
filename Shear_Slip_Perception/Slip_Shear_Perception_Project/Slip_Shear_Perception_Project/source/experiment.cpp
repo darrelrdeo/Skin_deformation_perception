@@ -16,41 +16,23 @@ using namespace std;
 
 
 // Experiment State Machine params
-#define TRIALS_TRG 8
-#define TRIALS_EXP 20
-
-int trialsPerExperimentBlock = TRIALS_TRG;	  // trials per experiment block, initialize as training first.
-static const int trialsBeforeBreak = 5;
-static const int trialTime = 30;                  // max time per trial or washout [sec]
-static const int stretchTime_Validation = 5;	 // 5 seconds
-static const int breakTime = 15;                 // break time [sec] between blocks
 static const int preblockTime = 10;               // time to display message [sec]
-static const int trainingTime = 60;
-static const int recordTime = 5;                  // time to record data [sec]
-static const int relaxTime = 10;				// time to relax between large strings of trials within same block
-static const int relax_to_trial_time = 2;       // Message prompt in seconds before starting trial after relaxation, requires button press to continue
-static const int force_sense_trial_time = 5;
-static const int numberOfBlocks = 1;
+static const int recordTime = 1;                  // time to record data [sec]
 
-
-
-
-
-
-// Test force defines
+// Test force defines (circular shear forces for device validation)
 static const double degree_increment = 10; // degrees increment 
 cMatrix3d R_Z;
-										  
-// set force vector magnitude 
 double force_vector_magnitude = 1; // 0.4 N
 cVector3d force_vector_rotated;
+
+
 cVector3d force_vector;
 
 // Demo Loop Params
 bool demo_start = true;
 DWORD dbouncer = 0;
 
-// zero holding
+// zero holding in IDLE
 double KP = 10;
 cVector3d position(0, 0, 0);
 cVector3d force(0, 0, 0);
@@ -77,6 +59,7 @@ static int BMI_command_itorator = 0;
 
 
 // Perception Force Profiles params
+static const int stretchTime_Perception = 1;	 // 3 seconds
 const int num_single_stimulus_application = 3; // number of times a unique stimulus is applied
 const int delta_angle_deg = 30; // degrees of perception angle wedges
 const int num_wedges = 360/delta_angle_deg;
@@ -94,15 +77,13 @@ cMatrix3d R_z_perception;											// Perception Study Defines
 cVector3d unitVect_zero_deg(1, 0, 0);
 
 
-int blockNumberIndex = 0;
-
-int userReady = 0;
-
 static shared_data* p_sharedData;  // structure for sharing data between threads
 
 // thread timestamp vars
 static DWORD currTime = 0;
 static DWORD lastTime = 0;
+
+
 
 // point p_sharedData to sharedData, which is the data shared between all threads
 void linkSharedDataToExperiment(shared_data& sharedData) {
@@ -199,13 +180,13 @@ void initDemo(void){
 void updateExperiment(void) {
 
 	// initialize frequency counter for experiment thread
-    p_sharedData->experimentFreqCounter.reset();
+	p_sharedData->experimentFreqCounter.reset();
 
-    while (p_sharedData->simulationRunning) {
-		
+	while (p_sharedData->simulationRunning) {
+
 		// only update experiment if timer has expired
-	    if (p_sharedData->m_expLoopTimer.timeoutOccurred()) {
-			
+		if (p_sharedData->m_expLoopTimer.timeoutOccurred()) {
+
 			// Get timestamp and compute the delta
 			currTime = timeGetTime();
 			DWORD delta = currTime - lastTime;
@@ -214,693 +195,469 @@ void updateExperiment(void) {
 
 			// stop timer for experiment loop
 			p_sharedData->m_expLoopTimer.stop();
-
-
-
-//*********************EXPERIMENT STATE MACHINE************************************		
+//***************************************************** EXPERIMENT STATE MACHINE ********************************************************************//		
 			if (p_sharedData->opMode == EXPERIMENT) {
-						
+
 				// Begin State Machine
 				switch (p_sharedData->experimentStateNumber) {
 
-/**********************************************************************************/                    
-					// START UP STATE 
-					case START_UP:
-						p_sharedData->experimentStateName = "START_UP";
-						// wait for a keypress
-						while(true){
-							if (_kbhit()) {
-                        
-								// when keypress occurs then send to ZERO Protocol
-								p_sharedData->message = "Please bias the Nano17 (press n). \nPlease Zero the tactor against the Participant's neck. Press z when complete.";
-								p_sharedData->experimentStateNumber = ZERO_TACTOR;
-								
-								break;
-							}
+/* START UP STATE *********************************************************************************************************************************/
+										// START UP STATE 
+				case START_UP:
+					p_sharedData->experimentStateName = "START_UP";
+					// wait for a keypress
+					while (true) {
+						if (_kbhit()) {
+
+							// when keypress occurs then send to ZERO Protocol
+							p_sharedData->message = "Please bias the Nano17 (press n). \nPlease Zero the tactor against the Participant's neck. Press z when complete.";
+							p_sharedData->experimentStateNumber = ZERO_TACTOR;
+
+							break;
 						}
-						break; // END : START UP STATE
-                    
-
-/**********************************************************************************/
-
+					}
+					break; // END : START UP STATE      
+/*************************************************************************************************************************************************/
+/* ZERO TACTOR STATE *********************************************************************************************************************************/
 						// ZERO Tactor State
-					case ZERO_TACTOR : 
-						p_sharedData->experimentStateName = "ZERO_TACTOR";
-						// button press in graphic window z and n in graphics.cpp
+				case ZERO_TACTOR:
+					p_sharedData->experimentStateName = "ZERO_TACTOR";
+					// button press in graphic window z and n in graphics.cpp
+					// display All measured forces from Nano17
+					p_sharedData->timer->setTimeoutPeriodSeconds(preblockTime);
+					break;
+/*************************************************************************************************************************************************/
+/* TEST FORCE SUB-STATE MACHINE ******************************************************************************************************************/
+				case TEST_FORCE:
+					// save one timestep
+					saveOneTimeStep();
 
-						// display All measured forces from Nano17
-						p_sharedData->timer->setTimeoutPeriodSeconds(preblockTime);
+					p_sharedData->experimentStateName = "TEST FORCE";
 
+					// construct initial force vector to be rotated (in tool frame)
+					force_vector = cVector3d(1, 0, 0);
+					force_vector = force_vector*force_vector_magnitude;
 
-						break;
+					// rotate vector:
+					R_Z.set(cos(p_sharedData->outputPhantomForce_Desired_Tool_angle_deg*PI / 180), -sin(p_sharedData->outputPhantomForce_Desired_Tool_angle_deg*PI / 180), 0, sin(p_sharedData->outputPhantomForce_Desired_Tool_angle_deg*PI / 180), cos(p_sharedData->outputPhantomForce_Desired_Tool_angle_deg*PI / 180), 0, 0, 0, 1);
+					force_vector_rotated = R_Z*force_vector;
 
+					// add z force into neck
+					force_vector.z(p_sharedData->outputNormalForce_Set);
+					force_vector_rotated = Rotate_Tool_to_Base_Frame(force_vector_rotated, p_sharedData->outputPhantomRotation);
 
-					case TEST_FORCE:
-						p_sharedData->experimentStateName = "Test Force";
+					// command desired forces to phantom
+					//send force to hapic device
+					p_sharedData->outputPhantomForce_Desired_X = force_vector_rotated.x();
+					p_sharedData->outputPhantomForce_Desired_Y = force_vector_rotated.y();
+					p_sharedData->outputPhantomForce_Desired_Z = force_vector_rotated.z();
 
+					// wait for time to expire and increment angle to display and send to small down
+					//and turn off all forces and send to record. 
+					if (p_sharedData->timer->timeoutOccurred()) {
+						// turn off all forces
+						setOutputForceToZero();
 
+						// increment angle of desired force vector
+						p_sharedData->outputPhantomForce_Desired_Tool_angle_deg = p_sharedData->outputPhantomForce_Desired_Tool_angle_deg + degree_increment;
+
+						recordTrial();
+						// set/start timer (from zero) and begin block of trials
+						p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
+						p_sharedData->timer->start(true);
+						p_sharedData->experimentStateNumber = RECORD;
+						p_sharedData->nextExperimentStateNumber = THANKS;
+					}
+					break;
+/*************************************************************************************************************************************************/
+/* TRACK BMI SUB-STATE MACHINE ******************************************************************************************************************/
+				case TRACK_BMI:
+					// save one timestep
+					saveOneTimeStep();
+
+					p_sharedData->experimentStateName = "TRACK BMI";
+
+					if (BMI_command_itorator < num_command_elements / 2) {
+
+						//update current force to be output by BMI command updated at 1KHz
+						p_sharedData->scaled_posX_command = p_sharedData->position_force_scalar*posx_BCI[BMI_command_itorator];
+						p_sharedData->scaled_posY_command = p_sharedData->position_force_scalar*posy_BCI[BMI_command_itorator];
+						p_sharedData->scaled_velX_command = p_sharedData->velocity_force_scalar*velx_BCI[BMI_command_itorator];
+						p_sharedData->scaled_velY_command = p_sharedData->velocity_force_scalar*vely_BCI[BMI_command_itorator];
+
+						// increment itorator
+						BMI_command_itorator = BMI_command_itorator + 1;
 
 						// construct initial force vector to be rotated (in tool frame)
-						force_vector = cVector3d(1, 0, 0);
-						force_vector = force_vector*force_vector_magnitude;
+						force_vector = cVector3d(p_sharedData->scaled_velX_command, p_sharedData->scaled_velY_command, p_sharedData->outputNormalForce_Set);
 
+						// update desired tool forces
+						p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
+						p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
+						p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
 
-						// rotate vector:
-
-						R_Z.set(cos(p_sharedData->outputPhantomForce_Desired_Tool_angle_deg*PI/180), -sin(p_sharedData->outputPhantomForce_Desired_Tool_angle_deg*PI / 180), 0, sin(p_sharedData->outputPhantomForce_Desired_Tool_angle_deg*PI / 180), cos(p_sharedData->outputPhantomForce_Desired_Tool_angle_deg*PI / 180), 0, 0, 0, 1);
-						force_vector_rotated = R_Z*force_vector;
-
-						// add z force into neck
-						force_vector.z(p_sharedData->outputNormalForce_Set);
-						force_vector_rotated = Rotate_Tool_to_Base_Frame(force_vector_rotated, p_sharedData->outputPhantomRotation);
+						// rotate tool to base frame
+						force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
 
 						// command desired forces to phantom
 						//send force to hapic device
-						p_sharedData->outputPhantomForce_Desired_X = force_vector_rotated.x();
-						p_sharedData->outputPhantomForce_Desired_Y = force_vector_rotated.y();
-						p_sharedData->outputPhantomForce_Desired_Z = force_vector_rotated.z();
-
-						// save one timestep
-						saveOneTimeStep();
-
-						// wait for time to expire and increment angle to display and send to small down
-						//and turn off all forces and send to record. 
-						if (p_sharedData->timer->timeoutOccurred()) {
-							// turn off all forces
-							setOutputForceToZero();
-
-							// increment angle of desired force vector
-							p_sharedData->outputPhantomForce_Desired_Tool_angle_deg = p_sharedData->outputPhantomForce_Desired_Tool_angle_deg + degree_increment;
-
-							recordTrial();
-							// set/start timer (from zero) and begin block of trials
-							p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
-							p_sharedData->timer->start(true);
-							p_sharedData->experimentStateNumber = RECORD;
-
-
-						}
-
-						break;
-
-
-
-
-
-
-					
-					case TRACK_BMI:
-						p_sharedData->experimentStateName = "Track BMI";
-
-						if (BMI_command_itorator < num_command_elements/2) {
-							//update current force to be output by BMI command updated at 1KHz
-							p_sharedData->scaled_posX_command = p_sharedData->position_force_scalar*posx_BCI[BMI_command_itorator];
-							p_sharedData->scaled_posY_command = p_sharedData->position_force_scalar*posy_BCI[BMI_command_itorator];
-							p_sharedData->scaled_velX_command = p_sharedData->velocity_force_scalar*velx_BCI[BMI_command_itorator];
-							p_sharedData->scaled_velY_command = p_sharedData->velocity_force_scalar*vely_BCI[BMI_command_itorator];
-
-							// increment itorator
-							BMI_command_itorator = BMI_command_itorator + 1;
-
-							// construct initial force vector to be rotated (in tool frame)
-							force_vector = cVector3d(p_sharedData->scaled_velX_command, p_sharedData->scaled_velY_command, p_sharedData->outputNormalForce_Set);
-
-							// update desired tool forces
-							p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
-							p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
-							p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
-
-							// rotate tool to base frame
-							force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
-
-							
-
-							// command desired forces to phantom
-							//send force to hapic device
-							p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
-							p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
-							p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
-
-							// save one timestep
-							saveOneTimeStep();
-						}
-						else // end of tracking
-						{
-							// set all forces to zero
-							setOutputForceToZero();
-							
-							// send to record
-							recordTrial();
-							// set/start timer (from zero) and begin block of trials
-							p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
-							p_sharedData->timer->start(true);
-							p_sharedData->experimentStateNumber = RECORD;
-
-
-						}
-
-
-						break;
-
-
-
-
-
-
-					case TRACK_BMI_NONLINEAR:
-						p_sharedData->experimentStateName = "Track BMI Nonlinear";
-
-						if (BMI_command_itorator < num_command_elements / 2) {
-							//update current force to be output by BMI command updated at 1KHz
-							p_sharedData->scaled_posX_command = p_sharedData->position_force_scalar*posx_BCI[BMI_command_itorator];
-							p_sharedData->scaled_posY_command = p_sharedData->position_force_scalar*posy_BCI[BMI_command_itorator];
-							p_sharedData->scaled_velX_command = p_sharedData->velocity_force_scalar*velx_BCI[BMI_command_itorator];
-							p_sharedData->scaled_velY_command = p_sharedData->velocity_force_scalar*vely_BCI[BMI_command_itorator];
-
-							// check if scaled commands exceed the maximums defined 
-							if (p_sharedData->scaled_posX_command > p_sharedData->Fmax) p_sharedData->scaled_posX_command = p_sharedData->Fmax;
-							if (p_sharedData->scaled_posX_command < -1*p_sharedData->Fmax) p_sharedData->scaled_posX_command = -1*p_sharedData->Fmax;
-
-							if (p_sharedData->scaled_posY_command > p_sharedData->Fmax) p_sharedData->scaled_posY_command = p_sharedData->Fmax;
-							if (p_sharedData->scaled_posY_command < -1*p_sharedData->Fmax) p_sharedData->scaled_posY_command = -1*p_sharedData->Fmax;
-
-							if (p_sharedData->scaled_velX_command > p_sharedData->Fmax) p_sharedData->scaled_velX_command = p_sharedData->Fmax;
-							if (p_sharedData->scaled_velX_command < -1*p_sharedData->Fmax) p_sharedData->scaled_velX_command = -1*p_sharedData->Fmax;
-
-							if (p_sharedData->scaled_velY_command > p_sharedData->Fmax) p_sharedData->scaled_velY_command = p_sharedData->Fmax;
-							if (p_sharedData->scaled_velY_command < -1 * p_sharedData->Fmax) p_sharedData->scaled_velY_command = -1 * p_sharedData->Fmax;
-
-							// increment itorator
-							BMI_command_itorator = BMI_command_itorator + 1;
-
-							// construct initial force vector to be rotated (in tool frame)
-							force_vector = cVector3d(p_sharedData->scaled_velX_command, p_sharedData->scaled_velY_command, p_sharedData->outputNormalForce_Set);
-
-							// update desired tool forces
-							p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
-							p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
-							p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
-
-							// rotate tool to base frame
-							force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
-
-
-
-							// command desired forces to phantom
-							//send force to hapic device
-							p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
-							p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
-							p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
-
-							// save one timestep
-							saveOneTimeStep();
-						}
-						else // end of tracking
-						{
-							// set all forces to zero
-							setOutputForceToZero();
-
-							// send to record
-							recordTrial();
-							// set/start timer (from zero) and begin block of trials
-							p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
-							p_sharedData->timer->start(true);
-							p_sharedData->experimentStateNumber = RECORD;
-
-
-						}
-
-
-						break;
-
-
-
-
-
-
-
-
-					case TRACK_BMI_DIRECTION:
-						p_sharedData->experimentStateName = "Track BMI Direction";
-
-						if (BMI_command_itorator < num_command_elements / 2) {
-							//update current force to be output by BMI command updated at 1KHz
-
-							// save one timestep
-							saveOneTimeStep();
-
-							float V_mag = sqrt(((velx_BCI[BMI_command_itorator]) *(velx_BCI[BMI_command_itorator])) + ((vely_BCI[BMI_command_itorator])*(vely_BCI[BMI_command_itorator])));
-							if (V_mag != 0) {
-								p_sharedData->velocity_MaxForce_scalar = p_sharedData->Fmax / V_mag;
-							}
-							else {
-								p_sharedData->velocity_MaxForce_scalar = 0;
-							}
-							p_sharedData->scaled_velX_command = velx_BCI[BMI_command_itorator] * p_sharedData->velocity_MaxForce_scalar;
-							p_sharedData->scaled_velY_command = vely_BCI[BMI_command_itorator] * p_sharedData->velocity_MaxForce_scalar;
-
-							// increment itorator
-							BMI_command_itorator = BMI_command_itorator + 1;
-
-							// construct initial force vector to be rotated (in tool frame)
-							force_vector = cVector3d(p_sharedData->scaled_velX_command, p_sharedData->scaled_velY_command, p_sharedData->outputNormalForce_Set);
-
-							// update desired tool forces
-							p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
-							p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
-							p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
-
-							// rotate tool to base frame
-							force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
-
-
-
-							// command desired forces to phantom
-							//send force to hapic device
-							p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
-							p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
-							p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
-
-
-						}
-						else // end of tracking
-						{
-							// set all forces to zero
-							setOutputForceToZero();
-
-							// send to record
-							recordTrial();
-							// set/start timer (from zero) and begin block of trials
-							p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
-							p_sharedData->timer->start(true);
-							p_sharedData->experimentStateNumber = RECORD;
-
-
-						}
-
-
-						break;
-
-
-					case IDLE :
-						p_sharedData->experimentStateName = "IDLE";
-
-						//hold position (desired - actual)
-						//read position of haptic device
-						p_sharedData->p_output_Phantom->getPosition(position);
-
-						// obtain desired force for spring control
-						force = 1 * KP*(cVector3d(p_sharedData->outputZeroPosX, p_sharedData->outputZeroPosY, p_sharedData->outputZeroPosZ) - position);
-
+						p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
+						p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
+						p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
+					}
+					else // end of tracking
+					{
+						// set all forces to zero
+						setOutputForceToZero();
+
+						// send to record
+						recordTrial();
+						// set/start timer (from zero) and begin block of trials
+						p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
+						p_sharedData->timer->start(true);
+						p_sharedData->experimentStateNumber = RECORD;
+						p_sharedData->nextExperimentStateNumber = THANKS;
+					}
+					break;
+/*************************************************************************************************************************************************/
+/* TRACK BMI NONLINEAR SUB-STATE MACHINE *********************************************************************************************************/
+				case TRACK_BMI_NONLINEAR:
+					// save one timestep
+					saveOneTimeStep();
+
+					p_sharedData->experimentStateName = "TRACK BMI NONLINEAR";
+
+					if (BMI_command_itorator < num_command_elements / 2) {
+						//update current force to be output by BMI command updated at 1KHz
+						p_sharedData->scaled_posX_command = p_sharedData->position_force_scalar*posx_BCI[BMI_command_itorator];
+						p_sharedData->scaled_posY_command = p_sharedData->position_force_scalar*posy_BCI[BMI_command_itorator];
+						p_sharedData->scaled_velX_command = p_sharedData->velocity_force_scalar*velx_BCI[BMI_command_itorator];
+						p_sharedData->scaled_velY_command = p_sharedData->velocity_force_scalar*vely_BCI[BMI_command_itorator];
+
+						// check if scaled commands exceed the maximums defined 
+						if (p_sharedData->scaled_posX_command > p_sharedData->Fmax) p_sharedData->scaled_posX_command = p_sharedData->Fmax;
+						if (p_sharedData->scaled_posX_command < -1 * p_sharedData->Fmax) p_sharedData->scaled_posX_command = -1 * p_sharedData->Fmax;
+
+						if (p_sharedData->scaled_posY_command > p_sharedData->Fmax) p_sharedData->scaled_posY_command = p_sharedData->Fmax;
+						if (p_sharedData->scaled_posY_command < -1 * p_sharedData->Fmax) p_sharedData->scaled_posY_command = -1 * p_sharedData->Fmax;
+
+						if (p_sharedData->scaled_velX_command > p_sharedData->Fmax) p_sharedData->scaled_velX_command = p_sharedData->Fmax;
+						if (p_sharedData->scaled_velX_command < -1 * p_sharedData->Fmax) p_sharedData->scaled_velX_command = -1 * p_sharedData->Fmax;
+
+						if (p_sharedData->scaled_velY_command > p_sharedData->Fmax) p_sharedData->scaled_velY_command = p_sharedData->Fmax;
+						if (p_sharedData->scaled_velY_command < -1 * p_sharedData->Fmax) p_sharedData->scaled_velY_command = -1 * p_sharedData->Fmax;
+
+						// increment itorator
+						BMI_command_itorator = BMI_command_itorator + 1;
+
+						// construct initial force vector to be rotated (in tool frame)
+						force_vector = cVector3d(p_sharedData->scaled_velX_command, p_sharedData->scaled_velY_command, p_sharedData->outputNormalForce_Set);
+
+						// update desired tool forces
+						p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
+						p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
+						p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
+
+						// rotate tool to base frame
+						force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
+
+						// command desired forces to phantom
 						//send force to hapic device
-						p_sharedData->outputPhantomForce_Desired_X = force.x();
-						p_sharedData->outputPhantomForce_Desired_Y = force.y();
-						p_sharedData->outputPhantomForce_Desired_Z = force.z();
+						p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
+						p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
+						p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
+					}
+					else // end of tracking
+					{
+						// set all forces to zero
+						setOutputForceToZero();
 
+						// send to record
+						recordTrial();
+						// set/start timer (from zero) and begin block of trials
+						p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
+						p_sharedData->timer->start(true);
+						p_sharedData->experimentStateNumber = RECORD;
+						p_sharedData->nextExperimentStateNumber = THANKS;
+					}
+					break;
+/*************************************************************************************************************************************************/
+/* TRACK BMI DIRECTION SUB-STATE MACHINE *********************************************************************************************************/
+				case TRACK_BMI_DIRECTION:
+					// save one timestep
+					saveOneTimeStep();
 
-						break;
+					p_sharedData->experimentStateName = "Track BMI Direction";
 
-
-
-
-
-
-
-
-
-
-/**********************************************************************************/
-					// TRAINING STATE
-					case TRAINING :
-						p_sharedData->experimentStateName = "TRAINING";
-
-						if (p_sharedData->timer->timeoutOccurred()) {
-
-							//move to the preblock sequence which for block 1 is the "mock trials"
-							p_sharedData->experimentStateNumber= PRE_BLOCK;
-							p_sharedData->message = "Beginning Mock Experiment Block " + to_string(static_cast<long long>(p_sharedData->blockNum)) + " : " + p_sharedData->blockName + " in " + to_string(static_cast<long long>(preblockTime)) + " seconds.";
-							p_sharedData->timer->setTimeoutPeriodSeconds(preblockTime);
-
-
-
-						}
-						break; // END: TRAINING STATE
-/**********************************************************************************/
-						// PRE BLOCK STATE
-					case PRE_BLOCK :
-						// set experiment state name
-						p_sharedData->experimentStateName = "PRE_BLOCK";
-						
-						// wait for PRE_BLOCK timer to expire
-						if (p_sharedData->timer->timeoutOccurred()) {
-							
-							// prepare for 1st trial
-							p_sharedData->trialNum = 1;
-
-
-							// set desired angle 
-							p_sharedData->outputPhantomForce_Desired_Tool_angle_deg = 0;
-						
-							//
-
-							// switch on what the next state is and setup
-							switch (p_sharedData->nextExperimentStateNumber) {
-								case PERCEPTION_EXPERIMENT_TRIAL :
-									// reset curr_force_ind to iterate through 
-									curr_force_ind = 0;
-
-									// obtain current trials target number (index) 
-									p_sharedData->outputPhantomForce_Desired_Tool_angle_deg = Randomized_stimulus_angle_array[p_sharedData->trialNum - 1];
-
-									// set first force before jumping to next state
-									// construct initial force vector to be rotated (in tool frame)
-									force_vector = cVector3d(force_profiles[Randomized_stimulus_angleIndex_array[p_sharedData->trialNum - 1]][curr_force_ind][0], force_profiles[Randomized_stimulus_angleIndex_array[p_sharedData->trialNum - 1]][curr_force_ind][1], p_sharedData->outputNormalForce_Set);
-
-									// update desired tool forces
-									p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
-									p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
-									p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
-
-									// rotate tool to base frame
-									force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
-
-
-
-									// command desired forces to phantom
-									//send force to hapic device
-									p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
-									p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
-									p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
-
-								break;
-
-
-
-
-							}
-					
-		
-
-							// Initialize cursor state
-							//initializeCursorState();		
-
-							// set/start timer (from zero) and begin block of trials, uncomment for Stretch validation trials
-						/*	p_sharedData->timer->setTimeoutPeriodSeconds(stretchTime_Validation);
-							p_sharedData->timer->start(true);
-							p_sharedData->experimentStateNumber = TEST_FORCE;
-							*/
-
-							//p_sharedData->experimentStateNumber = TRACK_BMI;
-							//p_sharedData->experimentStateNumber = TRACK_BMI_DIRECTION;
-
-							p_sharedData->experimentStateNumber = p_sharedData->nextExperimentStateNumber;
-
-						}
-						break; // END: PRE BLOCK STATE
-
-/**********************************************************************************/
-
-						// Perception Experiment
-					case PERCEPTION_EXPERIMENT_TRIAL:
-						// update experiment name
-						p_sharedData->experimentStateName = "PERCEPTION EXP. STATE";
-
-
-						// save data from time step
-						p_sharedData->timeElapsed = p_sharedData->timer->getCurrentTimeSeconds();
-
-
-						saveOneTimeStep();
-						if (p_sharedData->trialNum <= num_perception_trials) {
-							if (curr_force_ind < num_force_ind) {
-								force_vector = cVector3d(force_profiles[Randomized_stimulus_angleIndex_array[p_sharedData->trialNum - 1]][curr_force_ind][0], force_profiles[Randomized_stimulus_angleIndex_array[p_sharedData->trialNum - 1]][curr_force_ind][1], p_sharedData->outputNormalForce_Set);
-
-								// update desired tool forces
-								p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
-								p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
-								p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
-
-								// rotate tool to base frame
-								force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
-
-
-
-								// command desired forces to phantom
-								//send force to hapic device
-								p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
-								p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
-								p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
-
-								curr_force_ind = curr_force_ind + 1;
-							}
-							else {
-								recordTrial();
-
-								// set/start timer (from zero) and send to record state
-								p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
-								p_sharedData->timer->start(true);
-								p_sharedData->experimentStateNumber = RECORD;
-								p_sharedData->experimentStateName = "RECORD";
-								p_sharedData->nextExperimentStateNumber = PERCEPTION_EXPERIMENT_TRIAL;
-
-
-							}
+					if (BMI_command_itorator < num_command_elements / 2) {
+						//update current force to be output by BMI command updated at 1KHz
+						float V_mag = sqrt(((velx_BCI[BMI_command_itorator]) *(velx_BCI[BMI_command_itorator])) + ((vely_BCI[BMI_command_itorator])*(vely_BCI[BMI_command_itorator])));
+						if (V_mag != 0) {
+							p_sharedData->velocity_MaxForce_scalar = p_sharedData->Fmax / V_mag;
 						}
 						else {
-
-							// thank subject and terminate experiment
-							p_sharedData->message = "Thank you.";
-							p_sharedData->experimentStateNumber = THANKS;
-							p_sharedData->experimentStateName = "THANKS";
-							closeExperiment();
-							}
-
-						break;
-
-
-
-/**********************************************************************************/
-						// START RECORD STATE
-					case RECORD:
-						// update experiment state name 
-						p_sharedData->experimentStateName = "RECORDING";
-						
-						// wait for time to expire (more than enough to record data)
-						if (p_sharedData->timer->timeoutOccurred()) {
-							
-							
-							/*
-							// If it is time for a relax
-							if((p_sharedData->trialNum % trialsBeforeBreak) == 0){
-								p_sharedData->experimentStateNumber = RELAX;
-								p_sharedData->message =  "Please Take a break";
-
-								// set/start timer (from zero) and return to block
-								p_sharedData->timer->setTimeoutPeriodSeconds(relaxTime);
-								p_sharedData->timer->start(true);
-								
-							}
-							
-
-							else{ // it is time to go to next trial
-							//initializeCursorState();
-
-							// set/start timer (from zero) and return to block
-							p_sharedData->timer->setTimeoutPeriodSeconds(trialTime);
-							p_sharedData->timer->start(true);
-
-							p_sharedData->experimentStateNumber = EXPERIMENT;
-
-							}
-							*/
-
-							// set/start timer (from zero) and return to block
-
-
-							switch (p_sharedData->nextExperimentStateNumber) {
-								case PERCEPTION_EXPERIMENT_TRIAL :
-
-									// prep for next trial
-									(p_sharedData->trialNum)++;
-
-									// reset current force index and increment the trial number index
-									curr_force_ind = 0;
-
-									// obtain current trials target number (index) 
-									p_sharedData->outputPhantomForce_Desired_Tool_angle_deg = Randomized_stimulus_angle_array[p_sharedData->trialNum - 1];
-								break;
-
-							}
-
-							// if finished, send to thank you state, uncomment for Test_Force State Machine
-/*							if (p_sharedData->outputPhantomForce_Desired_Tool_angle_deg >= 360) {
-								p_sharedData->experimentStateNumber = THANKS;
-
-							}
-							else {
-								p_sharedData->timer->setTimeoutPeriodSeconds(stretchTime_Validation);
-								p_sharedData->timer->start(true);
-								p_sharedData->experimentStateNumber = TEST_FORCE;
-							}
-							*/
-
-
-							p_sharedData->experimentStateNumber = THANKS;
+							p_sharedData->velocity_MaxForce_scalar = 0;
 						}
-						break; // END RECORD STATE
-					
-					
-/**********************************************************************************/	
-					// START RELAX STATE
+						p_sharedData->scaled_velX_command = velx_BCI[BMI_command_itorator] * p_sharedData->velocity_MaxForce_scalar;
+						p_sharedData->scaled_velY_command = vely_BCI[BMI_command_itorator] * p_sharedData->velocity_MaxForce_scalar;
 
-					case RELAX:
+						// increment itorator
+						BMI_command_itorator = BMI_command_itorator + 1;
 
-						// update experiment state name
-						p_sharedData->experimentStateName = "RELAX";
+						// construct initial force vector to be rotated (in tool frame)
+						force_vector = cVector3d(p_sharedData->scaled_velX_command, p_sharedData->scaled_velY_command, p_sharedData->outputNormalForce_Set);
 
-						// check that timeout has occured for relaxation and return to next trial after relax_to_trial_time
-						if (p_sharedData->timer->timeoutOccurred()){
-							p_sharedData->message =  "Press button when ready. Trial will start 5 seconds afterwards.";
-							if (p_sharedData->inputPhantomSwitch == 1) {
-								userReady = 1;
-								p_sharedData->inputPhantomSwitch = 0;
-								p_sharedData->timer->setTimeoutPeriodSeconds(relax_to_trial_time);
-								p_sharedData->timer->start(true);
-							}
-						}
+						// update desired tool forces
+						p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
+						p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
+						p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
 
-							if ((p_sharedData->timer->timeoutOccurred()) && (userReady)){
-								userReady = 0;
-								//initializeCursorState();
-								
-								// set/start timer (from zero) and return to block
-								p_sharedData->timer->setTimeoutPeriodSeconds(trialTime);
-								p_sharedData->timer->start(true);
+						// rotate tool to base frame
+						force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
 
-								p_sharedData->experimentStateNumber = EXPERIMENT;
-							}
+						// command desired forces to phantom
+						//send force to hapic device
+						p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
+						p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
+						p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
+					}
+					else // end of tracking
+					{
+						// set all forces to zero
+						setOutputForceToZero();
 
+						// send to record
+						recordTrial();
+						// set/start timer (from zero) and begin block of trials
+						p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
+						p_sharedData->timer->start(true);
+						p_sharedData->experimentStateNumber = RECORD;
+						p_sharedData->nextExperimentStateNumber = THANKS;
+					}
 					break;
 
-/**********************************************************************************/	
-					// START BREAK STATE
-					case BREAK:
-						// update experiment state name
-						p_sharedData->experimentStateName = "BREAK";
-						
-						// check if break is over
-						if (p_sharedData->timer->timeoutOccurred()) {
+/*************************************************************************************************************************************************/
+/* IDLE STATE ************************************************************************************************************************************/
+				case IDLE:
+					p_sharedData->experimentStateName = "IDLE";
 
-							// set/start timer (from zero) and send directly to preBlock
-							p_sharedData->timer->setTimeoutPeriodSeconds(preblockTime);
+					//hold position (desired - actual)
+					//read position of haptic device
+					p_sharedData->p_output_Phantom->getPosition(position);
+
+					// obtain desired force for spring control
+					force = 1 * KP*(cVector3d(p_sharedData->outputZeroPosX, p_sharedData->outputZeroPosY, p_sharedData->outputZeroPosZ) - position);
+
+					//send force to hapic device
+					p_sharedData->outputPhantomForce_Desired_X = force.x();
+					p_sharedData->outputPhantomForce_Desired_Y = force.y();
+					p_sharedData->outputPhantomForce_Desired_Z = force.z();
+
+					break;
+/*************************************************************************************************************************************************/
+/* PRE BLOCK STATE ************************************************************************************************************************************/
+				case PRE_BLOCK:
+					// set experiment state name
+					p_sharedData->experimentStateName = "PRE_BLOCK";
+
+					// wait for PRE_BLOCK timer to expire
+					if (p_sharedData->timer->timeoutOccurred()) {
+						p_sharedData->timer->stop();
+
+						// prepare for 1st trial
+						p_sharedData->trialNum = 1;
+
+						// set desired angle 
+						p_sharedData->outputPhantomForce_Desired_Tool_angle_deg = 0;
+
+						//
+
+						// switch on what the next state is and setup
+						switch (p_sharedData->nextExperimentStateNumber) {
+						case PERCEPTION_EXPERIMENT_TRIAL:
+							// reset curr_force_ind to iterate through 
+							curr_force_ind = 0;
+
+							// obtain current trials target number (index) 
+							p_sharedData->outputPhantomForce_Desired_Tool_angle_deg = Randomized_stimulus_angle_array[p_sharedData->trialNum - 1];
+
+							// set first force before jumping to next state
+							// construct initial force vector to be rotated (in tool frame)
+							force_vector = cVector3d(force_profiles[Randomized_stimulus_angleIndex_array[p_sharedData->trialNum - 1]][curr_force_ind][0], force_profiles[Randomized_stimulus_angleIndex_array[p_sharedData->trialNum - 1]][curr_force_ind][1], p_sharedData->outputNormalForce_Set);
+
+							// update desired tool forces
+							p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
+							p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
+							p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
+
+							// rotate tool to base frame
+							force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
+
+							// command desired forces to phantom
+							//send force to hapic device
+							p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
+							p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
+							p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
+
+							p_sharedData->timer->setTimeoutPeriodSeconds(stretchTime_Perception);
 							p_sharedData->timer->start(true);
-							p_sharedData->experimentStateNumber = PRE_BLOCK;
+
+							break;
 						}
-						break; // END BREAK STATE
-					
-					
-/**********************************************************************************/
-						// START EXPERIMENT STATE
-						case EXPERIMENT:
-							// update experiment name
-							p_sharedData->experimentStateName = "EXPERIMENT";
+						p_sharedData->experimentStateNumber = p_sharedData->nextExperimentStateNumber;
 
+					}
+					break;
+/*************************************************************************************************************************************************/
+/* PERCEPTION EXPERIMENT TRIAL STATE *************************************************************************************************************/
+				case PERCEPTION_EXPERIMENT_TRIAL:
+					saveOneTimeStep();
 
-							// save data from time step
-							p_sharedData->timeElapsed = p_sharedData->timer->getCurrentTimeSeconds();
+					// update experiment name
+					p_sharedData->experimentStateName = "PERCEPTION EXP. STATE";
 
-							if (p_sharedData->trialNum <= trialsPerExperimentBlock) // if the trial is within the block save data
-							{
-								saveOneTimeStep();
-							}
+					// save data from time step
+					p_sharedData->timeElapsed = p_sharedData->timer->getCurrentTimeSeconds();
 
-						// check if the Experiment block is complete (all trials completed)
-						if (p_sharedData->trialNum > trialsPerExperimentBlock) {
-                       
-							// give subject a break before Experiment block
-							p_sharedData->message = "Break: " + to_string(static_cast<long long>(breakTime)) + " seconds until next experiment block.";
-                        
-							// set/start timer (from zero) send to break with break time
-							p_sharedData->timer->setTimeoutPeriodSeconds(breakTime);
+					if (p_sharedData->trialNum <= num_perception_trials) {
+						if (curr_force_ind < num_force_ind) {
+							force_vector = cVector3d(force_profiles[Randomized_stimulus_angleIndex_array[p_sharedData->trialNum - 1]][curr_force_ind][0], force_profiles[Randomized_stimulus_angleIndex_array[p_sharedData->trialNum - 1]][curr_force_ind][1], p_sharedData->outputNormalForce_Set);
+
+							// update desired tool forces
+							p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
+							p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
+							p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
+
+							// rotate tool to base frame
+							force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
+
+							// command desired forces to phantom
+							//send force to hapic device
+							p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
+							p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
+							p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
+
+							curr_force_ind = curr_force_ind + 1;
+						}
+
+						if (p_sharedData->timer->timeoutOccurred() && p_sharedData->nextPerceptionStim_flag) { // AND this with a conditional press N for next flag
+							p_sharedData->timer->stop();
+							p_sharedData->nextPerceptionStim_flag = false;
+							recordTrial();
+
+							p_sharedData->experimentStateNumber = RETURN_SHEAR_TO_ZERO;
+							p_sharedData->nextExperimentStateNumber = RECORD;
+							curr_force_ind = num_force_ind - 1;
+						}
+					}
+					else {
+						// zero all forces
+						setOutputForceToZero();
+						// thank subject and terminate experiment
+						p_sharedData->message = "Thank you.";
+						p_sharedData->experimentStateNumber = THANKS;
+						p_sharedData->experimentStateName = "THANKS";
+						closeExperiment();
+					}
+
+					break;
+/*************************************************************************************************************************************************/
+/* RETURN SHEAR TO ZERO STATE *************************************************************************************************************/
+				case RETURN_SHEAR_TO_ZERO:
+
+					if (curr_force_ind >= 0) {
+						// decrement shear forces
+						force_vector = cVector3d(force_profiles[Randomized_stimulus_angleIndex_array[p_sharedData->trialNum - 1]][curr_force_ind][0], force_profiles[Randomized_stimulus_angleIndex_array[p_sharedData->trialNum - 1]][curr_force_ind][1], p_sharedData->outputNormalForce_Set);
+
+						// update desired tool forces
+						p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
+						p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
+						p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
+
+						// rotate tool to base frame
+						force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
+
+						// command desired forces to phantom
+						//send force to hapic device
+						p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
+						p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
+						p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
+
+						curr_force_ind--;
+
+					}
+					else { // when completed decrementing then send to record state
+
+						p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
+						p_sharedData->timer->start(true);
+						p_sharedData->experimentStateNumber = RECORD;
+						p_sharedData->nextExperimentStateNumber = PERCEPTION_EXPERIMENT_TRIAL;
+					}
+					break;
+/*************************************************************************************************************************************************/
+/* RECORD STATE **********************************************************************************************************************************/
+				case RECORD:
+					// update experiment state name 
+					p_sharedData->experimentStateName = "RECORDING";
+
+					// wait for time to expire (more than enough to record data)
+					if (p_sharedData->timer->timeoutOccurred()) {
+						p_sharedData->timer->stop();
+
+						// set/start timer (from zero) and return to block
+
+						switch (p_sharedData->nextExperimentStateNumber) {
+						case PERCEPTION_EXPERIMENT_TRIAL:
+
+							// prep for next trial
+							(p_sharedData->trialNum)++;
+
+							// reset current force index and increment the trial number index
+							curr_force_ind = 0;
+
+							// obtain current trials target number (index) 
+							p_sharedData->outputPhantomForce_Desired_Tool_angle_deg = Randomized_stimulus_angle_array[p_sharedData->trialNum - 1];
+
+							p_sharedData->timer->setTimeoutPeriodSeconds(stretchTime_Perception);
 							p_sharedData->timer->start(true);
-							p_sharedData->experimentStateNumber = BREAK;
+							p_sharedData->experimentStateNumber = p_sharedData->nextExperimentStateNumber;
+
+							break;
+
+						case TRACK_BMI:
+
+							p_sharedData->experimentStateNumber = THANKS;
+							break;
 
 
+						case TRACK_BMI_DIRECTION:
+							p_sharedData->experimentStateNumber = THANKS;
+							break;
 
-							// Iterate to next block type and parameters
-							blockNumberIndex++;
+						case TRACK_BMI_NONLINEAR:
 
-							if(blockNumberIndex > numberOfBlocks){
-								
-								// thank subject and terminate experiment
-								p_sharedData->message = "Thank you.";
-								p_sharedData->experimentStateNumber = THANKS;
-								p_sharedData->experimentStateName = "THANKS";
-								closeExperiment();
-								
-							}
-
-
-						} else {
-							// if switch is pressed, denote as end of trial
-							if((p_sharedData->inputPhantomSwitch == 1) || (p_sharedData->joystickSwitch == 1)) {
-							
-								// turn off switch
-								p_sharedData->inputPhantomSwitch = 0;
-								p_sharedData->message = "You pressed a button!";
-
-								// start recording trial data
-								saveOneTimeStep();
-								recordTrial();
-
-								// set/start timer (from zero) and send to record state
-								p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
-								p_sharedData->timer->start(true);
-								p_sharedData->experimentStateNumber = RECORD;
-
-
-
-							}
-
-							// unsuccessful trial (i.e., time expired)
-							if (p_sharedData->timer->timeoutOccurred()) {
-							
-								p_sharedData->message = "Time expired!";
-                        
-								// start recording trial data
-								saveOneTimeStep();
-								recordTrial();
-							
-								// set/start timer (from zero) and send to record state
-								p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
-								p_sharedData->timer->start(true);
-								p_sharedData->experimentStateNumber = RECORD;
-							}
+							p_sharedData->experimentStateNumber = THANKS;
+							break;
 						}
-						break; // END EXPERIMENT STATE
-
-
-/**********************************************************************************/
-
-						case THANKS :
-							p_sharedData->message = "Thank You!";
-						break;
-
-
-/**********************************************************************************/
-					
+						// if finished, send to thank you state, uncomment for Test_Force State Machine
+					}
+					break; // END RECORD STATE
+/*************************************************************************************************************************************************/
+/* RECORD STATE **********************************************************************************************************************************/
+				case THANKS:
+					p_sharedData->experimentStateName = "THANKS";
+					p_sharedData->message = "Thank You!";
+					break;
 				}
-
-				
-			} 
+			}
 //*********************END OF EXPERIMENT STATE MACHINE ****************************
 
 //******************************DEMO LOOP******************************************
-			if (p_sharedData->opMode==DEMO){
+			if (p_sharedData->opMode == DEMO) {
 				// Begin State Machine
 				switch (p_sharedData->demoStateNumber) {
 
-					/**********************************************************************************/
+/**********************************************************************************/
 				case START_UP_DEMO:
 					// prompt user to define zero location
 					p_sharedData->message = "Waiting on Keypress to select next State ";
@@ -908,78 +665,16 @@ void updateExperiment(void) {
 					// key press in graphics thread will send state machine to next state once zero location set
 
 					break;
-					/**********************************************************************************/
-
-
-				case FORCE_SENSOR_TESTING_DEMO:
-
-					// set demoState number and name
-					p_sharedData->demoStateName = "Force Sensor Testing";
-
-					if (!p_sharedData->ZeroPhantomForce_FLAG) {
-
-						p_sharedData->outputPhantomForce_Desired_X = 10 * p_sharedData->cursorPosZ;
-						p_sharedData->outputPhantomForce_Desired_Y = 10 * p_sharedData->cursorPosY;
-						p_sharedData->outputPhantomForce_Desired_Z = 0; // 10 * p_sharedData->cursorPosZ;
 				}
-
-					break;
-/**********************************************************************************/
-
-
-
-				case INPUT_PROMPT_DEMO : 
-
-					p_sharedData->demoStateName = "INPUT PROMPT DEMO";
-					//  scale force command of input phantom to 2d shear force
-					// define vector to obtain current input phantom position
-					// Desired force output
-
-					p_sharedData->outputPhantomForce_Desired_X = -10*p_sharedData->cursorPosX;
-					p_sharedData->outputPhantomForce_Desired_Y = 10*p_sharedData->cursorPosY;
-					p_sharedData->outputPhantomForce_Desired_Z = 10*p_sharedData->cursorPosZ;
-
-
-				break;
-
-
-
-
-/**********************************************************************************/
-				case HOLD_ZERO_POINT_DEMO :
-					
-					//read position of haptic device
-					p_sharedData->p_output_Phantom->getPosition(position);
-
-					// obtain desired force for spring control
-					force = -1*KP*position;
-
-					//send force to hapic device
-					p_sharedData->p_output_Phantom->setForce(force);
-
-					
-
-					
-				break;
-
-
-
-
-
-				}
-
-
-
 			}
 //****************************** END DEMO LOOP***************************************
-
-			// restart experiment loop timer            
+						// restart experiment loop timer            
 			p_sharedData->m_expLoopTimer.start(true);
 			lastTime = currTime;
 		}
-    }
-     
+	}
 }
+
 
 
 
@@ -991,23 +686,6 @@ void closeExperiment(void) {
     
 }
 
-// Set all velocities and positions to zero (for cursor)
-void initializeCursorState(void){
-	p_sharedData->cursorPosX = 0;
-	p_sharedData->cursorPosY = 0;
-	p_sharedData->cursorPosZ = 0;
-	
-	p_sharedData->cursorPosX_OneAgo = 0;
-	p_sharedData->cursorPosY_OneAgo = 0;
-	p_sharedData->cursorPosZ_OneAgo = 0;
-
-	p_sharedData->cursorVelX = 0;
-	p_sharedData->cursorVelY = 0;
-	p_sharedData->cursorVelZ = 0;
-}
-
-
-
 
 void setOutputForceToZero(void) {
 	p_sharedData->outputPhantomForce_Desired_X = 0;
@@ -1017,29 +695,15 @@ void setOutputForceToZero(void) {
 }
 
 
-
-
-
 void setup_Perception_Force_Profiles(void) {
-
-	/*const int delta_angle_deg = 30; // degrees of perception angle wedges
-	const int num_single_stimulus_application = 3; // number of times a unique stimulus is applied
-	const int delta_angle_deg = 30; // degrees of perception angle wedges
-	const int num_wedges = 360/delta_angle_deg;
-	const int num_perception_trials = num_wedges*num_single_stimulus_application; // number of total perception trials
-	const int Randomized_stimulus_angle_array[num_perception_trials]; // this array will hold the randomized trial progression
-	const int num_wedges = 360 / delta_angle_deg;
-	const int ramp_duration_ms = 1000; // 1 second ramp
-	const int delta_time_ms = 1; // 1 ms
-	const int num_force_ind = ramp_duration_ms / delta_time_ms;
-	float perception_angles_tf[num_wedges];
-	float force_profiles[num_wedges][num_force_ind][2];
-	*/
 
 	// fill in perception angles array
 	perception_angles_tf[0] = 0; // initialize first angle to zero degrees
+	printf("Perception Angles:  ");
+	printf(" %d ", perception_angles_tf[0]);
 	for (int i = 1; i < num_wedges; i++) {
 		perception_angles_tf[i] = perception_angles_tf[i - 1] + delta_angle_deg;
+		printf(" %d ",perception_angles_tf[i]);
 	}
 
 	float delta_F = p_sharedData->Fmax / num_force_ind;
@@ -1058,9 +722,8 @@ void setup_Perception_Force_Profiles(void) {
 	}
 
 	// randomization of perception cueues 
+	srand(time(NULL));
 	randomizeTargets();
-
-
 
 }
 
@@ -1076,25 +739,29 @@ void randomizeTargets(void) {
 	for (int j = 0; j < num_single_stimulus_application; j++) {
 		// Temporary randomized array with every target number
 		int tempRandTargetArray[num_wedges];
+		int tempRandTargetArrayInd[num_wedges];
 		int k = 0;
 		for (k = 0; k < num_wedges; k++) {
 			tempRandTargetArray[k] = perception_angles_tf[k];
+			tempRandTargetArrayInd[k] = k;
 		}
-		srand(time(NULL));
-		randomize(tempRandTargetArray, num_wedges);
+		//srand(time(NULL));
+		randomize(tempRandTargetArray, tempRandTargetArrayInd, num_wedges);
 
 		// now fill the corresponding Randomized_stimulus_angle_array
 		for (k = 0; k < num_wedges; k++) {
 			Randomized_stimulus_angle_array[j*num_wedges+k] = tempRandTargetArray[k];
-			Randomized_stimulus_angleIndex_array[j*num_wedges + k] = k;
+			Randomized_stimulus_angleIndex_array[j*num_wedges + k] = tempRandTargetArrayInd[k];
 		}
 
 	}
 
 
-	printf("RandTargets: ");
+	printf("\nRandTargets: ");
 	int i = 0;
 	for (i = 0; i < num_perception_trials; i++) printf(" %d ", Randomized_stimulus_angle_array[i]);
+	printf("\n\nRandTargets Indices: ");
+	for (i = 0; i < num_perception_trials; i++) printf(" %d ", Randomized_stimulus_angleIndex_array[i]);
 
 }
 
@@ -1112,11 +779,11 @@ void swap(int *a, int *b)
 
 
 // A function to generate a random permutation of arr[]
-void randomize(int arr[], int n)
+void randomize(int arr[], int arrInd[], int n)
 {
 	// Use a different seed value so that we don't get same
 	// result each time we run this program
-	srand(time(NULL));
+	//srand(time(NULL));
 
 	// Start from the last element and swap one by one. We don't
 	// need to run for the first element that's why i > 0
@@ -1127,5 +794,6 @@ void randomize(int arr[], int n)
 
 		// Swap arr[i] with the element at random index
 		swap(&arr[i], &arr[j]);
+		swap(&arrInd[i], &arrInd[j]);
 	}
 }

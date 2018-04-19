@@ -64,8 +64,9 @@ void setup(void) {
 	p_sharedData->cursorVelY = 0;
 	p_sharedData->cursorVelZ = 0;
 
-	// Perception Study
+	// Perception Study (need to save)
 	p_sharedData->currPerceptionAngle = 0;
+	p_sharedData->nextPerceptionStim_flag = false;
 
 	// Input Phantom state
 	p_sharedData->inputPhantomPosX = 0;
@@ -411,5 +412,7 @@ void recordTrial(void) {
     
     // clear vector for next segment and signal that recording is done
     p_sharedData->trialData.clear();
+
+	printf("\n\nFINISHED RECORDING\n\n");
     
 }

@@ -47,6 +47,7 @@ using namespace std;
 #define TRACK_BMI_DIRECTION 19
 #define TRACK_BMI_NONLINEAR 21
 #define PERCEPTION_EXPERIMENT_TRIAL 20
+#define RETURN_SHEAR_TO_ZERO 22
 #define IDLE			16
 #define PRE_TRAINING	15
 #define PRE_BLOCK		5
@@ -218,8 +219,7 @@ typedef struct {
 
 	// perception study information
 	int currPerceptionAngle;
-	
-
+	bool nextPerceptionStim_flag;
 
 	// cursor parameters
 	double cursorPosX;	// current cursor x position
