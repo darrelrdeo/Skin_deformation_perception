@@ -3,6 +3,7 @@
 #include <math.h>
 #include "shared_data.h"
 #include "Phantom.h"
+#include "experiment.h"
 using namespace chai3d;
 using namespace std;
 
@@ -569,9 +570,13 @@ void respToKey(unsigned char key, int x, int y) {
 
 	// Direction Perception Study (d keypress)
 	if (key == 'd') {
+
+		
+
 		p_sharedData->message = "After stimulus, press m for next stimulus.";
 		// log the desired z normal force
 		p_sharedData->outputNormalForce_Set = p_sharedData->outputPhantomForce_Desired_Tool_Z;
+		setZHomingProfile();
 		// start timer for next state of BMI tracking 
 
 		p_sharedData->timer->start(true);

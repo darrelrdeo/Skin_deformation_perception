@@ -606,7 +606,7 @@ void updateExperiment(void) {
 					// update experiment name
 					p_sharedData->experimentStateName = "RETURN NORMAL FORCE TO ZERO";
 
-					if (curr_z_force_ind >= 0) {
+					if (curr_z_force_ind > 0) {
 						// decrement normal force
 						force_vector = cVector3d(0, 0, z_force_profiles[curr_z_force_ind]);
 
@@ -638,9 +638,10 @@ void updateExperiment(void) {
 				case SET_NORMAL:
 					// update experiment name
 					p_sharedData->experimentStateName = "RETURN NORMAL FORCE TO HOME";
-
-					if (curr_z_force_ind <= num_z_force_ind) {
+					//printf("Z FORCE IND: %d\n\n", curr_z_force_ind);
+					if (curr_z_force_ind < num_z_force_ind) {
 						// incremental normal force
+						//printf("%f \n\n", z_force_profiles[curr_z_force_ind]);
 						force_vector = cVector3d(0, 0, z_force_profiles[curr_z_force_ind]);
 
 						// update desired tool forces
@@ -657,7 +658,7 @@ void updateExperiment(void) {
 						p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
 						p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
 
-						curr_z_force_ind++;
+						curr_z_force_ind = curr_z_force_ind + 1;
 
 					}
 					else { // when completed incrementing then wait for buttonPress for next stimuli
@@ -665,6 +666,22 @@ void updateExperiment(void) {
 
 						// Wait for button M press to proceed
 						if (p_sharedData->nextPerceptionStim_flag) {
+							force_vector = cVector3d(0, 0,p_sharedData->outputNormalForce_Set);
+
+							// update desired tool forces
+							p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
+							p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
+							p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
+
+							// rotate tool to base frame
+							force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
+
+							// command desired forces to phantom
+							//send force to hapic device
+							p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
+							p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
+							p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
+
 
 							// toggle flag off
 							p_sharedData->nextPerceptionStim_flag = false;
@@ -804,12 +821,7 @@ void setup_Perception_Force_Profiles(void) {
 		}
 	}
 
-	// fill z_force profile to increment and decrement to zero
-	float delta_F_z = p_sharedData->outputNormalForce_Set / num_z_force_ind;
-	for (int j = 0; j < num_wedges; j++) {
-		double currForceMag = j*delta_F_z;
-		z_force_profiles[j] = currForceMag;
-	}
+	
 
 	// randomization of perception cueues 
 	srand(time(NULL));
@@ -820,7 +832,16 @@ void setup_Perception_Force_Profiles(void) {
 
 
 
+void setZHomingProfile(void) {
+	// fill z_force profile to increment and decrement to zero
+	float delta_F_z = p_sharedData->outputNormalForce_Set / num_z_force_ind;
+	for (int j = 0; j < num_z_force_ind; j++) {
+		double currForceMag = j*delta_F_z;
+		z_force_profiles[j] = currForceMag;
+		//printf("Z_force_Profile: %f \n\n", currForceMag);
+	}
 
+}
 
 
 

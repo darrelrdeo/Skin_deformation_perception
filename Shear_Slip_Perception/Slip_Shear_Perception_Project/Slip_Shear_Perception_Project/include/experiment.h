@@ -23,6 +23,7 @@ void closeExperiment(void);
 void setOutputForceToZero(void);
 
 void setup_Perception_Force_Profiles(void);
+void setZHomingProfile(void);
 void randomizeTargets(void);
 void randomize(int arr[], int arrInd[], int n);
 void swap(int *a, int *b);

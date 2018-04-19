@@ -15,6 +15,7 @@
 #include <cstdio>
 #include <stdio.h>
 #include <string.h>
+#include <iostream>
 #include "Phantom.h"
 #include "cForceSensor.h"
 #include "cATIForceSensor.h"
@@ -25,12 +26,17 @@
 #include "shared_data.h"
 #include "data.h"
 
+#include "OSC_Listener.h"
+
+
+
 using namespace chai3d;
 using namespace std;
 
 // Main or Test Harness Selection
 #define MAIN
 //#define TEST_NIDAQ_FT
+
 
 //------------------------
 // Variables & Structures
@@ -47,6 +53,40 @@ shared_data *sharedData;
 //---------------
 #ifdef MAIN
 int main(int argc, char* argv[]) {
+	/*
+	// socket setup
+	SOCKET s;
+	struct sockaddr_in server, si_other;
+	int slen, recv_len;
+	char buf[BufLen];
+	WSADATA wsa;
+
+	slen = sizeof(si_other);
+
+	//Initialise winsock
+	printf("\nInitialising Winsock...");
+	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+	{
+		printf("Failed. Error Code : %d", WSAGetLastError());
+		exit(EXIT_FAILURE);
+	}
+	printf("Initialised.\n");
+
+	//Create a socket
+	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) == INVALID_SOCKET)
+	{
+		printf("Could not create socket : %d", WSAGetLastError());
+	}
+	printf("Socket created.\n");
+
+	//Prepare the sockaddr_in structure
+	server.sin_family = AF_INET;
+	server.sin_addr.s_addr = INADDR_ANY;
+	server.sin_port = htons(PORT);
+
+	*/
+
+
 
 	cGenericHapticDevicePtr hapticDevice[2];
 	// create a haptic device handler

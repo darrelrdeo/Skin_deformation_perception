@@ -12,10 +12,15 @@
 #include "cForceSensor.h"
 #include "cATIForceSensor.h"
 #include <stdint.h>
+#include "UdpSocket.h"
+#include "OSC_Listener.h"
 
 using namespace chai3d;
 using namespace std;
 
+// UDP Setup
+#define PORT 30000 // 
+#define IP ""
 
 // Operation Mode
 #define DEMO		0
@@ -208,6 +213,9 @@ typedef struct {
 	// graphics
 	string message;
 
+	// UDP
+	// OSC processing
+	OSC_Listener listener;             // "hears" messages passed through "Mind your OSCs" port
 	
 	// state machine params
 	int experimentStateNumber;

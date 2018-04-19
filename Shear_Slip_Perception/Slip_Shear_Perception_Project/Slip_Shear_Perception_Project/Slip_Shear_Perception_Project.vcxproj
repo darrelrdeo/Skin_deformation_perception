@@ -22,8 +22,16 @@
     <ClCompile Include="source\data.cpp" />
     <ClCompile Include="source\experiment.cpp" />
     <ClCompile Include="source\graphics.cpp" />
+    <ClCompile Include="source\IpEndpointName.cpp" />
     <ClCompile Include="source\main.cpp" />
+    <ClCompile Include="source\NetworkingUtils.cpp" />
+    <ClCompile Include="source\OscOutboundPacketStream.cpp" />
+    <ClCompile Include="source\OscPrintReceivedElements.cpp" />
+    <ClCompile Include="source\OscReceivedElements.cpp" />
+    <ClCompile Include="source\OscTypes.cpp" />
+    <ClCompile Include="source\OSC_Listener.cpp" />
     <ClCompile Include="source\Phantom.cpp" />
+    <ClCompile Include="source\UdpSocket.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\APP626.h" />
