@@ -10,12 +10,15 @@
 //*******************************************************************************
 // *                                 INCLUDES                                    *
 // ******************************************************************************/
+#define _CRT_SECURE_NO_WARNINGS
+#include <winsock2.h>
 #include <Windows.h>
 #include <assert.h>
 #include <cstdio>
 #include <stdio.h>
 #include <string.h>
 #include <iostream>
+
 #include "Phantom.h"
 #include "cForceSensor.h"
 #include "cATIForceSensor.h"
@@ -25,17 +28,21 @@
 #include "graphics.h"
 #include "shared_data.h"
 #include "data.h"
+#include "UdpSocket.h"
+#include "PacketListener.h"
+#include "UDP_BG.h"
+#include <Ws2tcpip.h>
 
-#include "OSC_Listener.h"
-
-
+// Link with ws2_32.lib
+#pragma comment(lib, "Ws2_32.lib")
 
 using namespace chai3d;
 using namespace std;
 
 // Main or Test Harness Selection
-#define MAIN
+//#define MAIN
 //#define TEST_NIDAQ_FT
+#define TEST_UDP
 
 
 //------------------------
@@ -53,39 +60,56 @@ shared_data *sharedData;
 //---------------
 #ifdef MAIN
 int main(int argc, char* argv[]) {
+
+
 	/*
-	// socket setup
-	SOCKET s;
-	struct sockaddr_in server, si_other;
-	int slen, recv_len;
-	char buf[BufLen];
-	WSADATA wsa;
+	//initialize socket and structure
+	int socket_info;
+	struct sockaddr_in server;
+	char incoming_message[UDP_Packet_Length];
 
-	slen = sizeof(si_other);
-
-	//Initialise winsock
-	printf("\nInitialising Winsock...");
-	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
-	{
-		printf("Failed. Error Code : %d", WSAGetLastError());
-		exit(EXIT_FAILURE);
+	//create socket
+	socket_info = socket(AF_INET, SOCK_STREAM, 0);
+	if (socket_info == -1) {
+		printf("Could not create socket");
 	}
-	printf("Initialised.\n");
 
-	//Create a socket
-	if ((s = socket(AF_INET, SOCK_DGRAM, 0)) == INVALID_SOCKET)
-	{
-		printf("Could not create socket : %d", WSAGetLastError());
-	}
-	printf("Socket created.\n");
-
-	//Prepare the sockaddr_in structure
+	//assign values
+	server.sin_addr.s_addr = inet_addr("192.168.30.4");
 	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = INADDR_ANY;
-	server.sin_port = htons(PORT);
+	server.sin_port = htons(int(PORT));
 
+	//checks connection
+	if (bind(socket_info, (struct sockaddr *)&server, sizeof(server)) < 0) {
+		printf("Connection error");
+		return 1;
+	}
+	puts("Bind");
+/*
+	//Receive an incoming message
+	while (1) {
+		if (recv(socket_info, incoming_message, sizeof(incoming_message), 0) < 0) {
+			puts("Received failed");
+			return 1;
+		}
+		puts("Message received");
+		puts(incoming_message);
+	}
 	*/
 
+
+	//IpEndpointName IP_add;
+	//PacketListener packet;
+	//UdpSocket skt;
+	//U
+	//unsigned long add = unsigned long(IP);
+	//IP_add.address = add;
+
+	//IP_add.port = PORT;
+	//UdpListeningReceiveSocket skt(IP_add, P_listener);
+	
+//	bool bound = skt.IsBound();
+//	if (bound == 1) printf("BOUND!");
 
 
 	cGenericHapticDevicePtr hapticDevice[2];
@@ -268,3 +292,81 @@ int main(int argc, char* argv[]) {
 
 
 #endif // TEST_NIDAQ_FT
+
+
+
+#ifdef TEST_UDP
+
+int main(int argc, char *argv[])
+{
+
+	WSADATA wsaData;
+	int nResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+	if (nResult != 0) {
+		std::cout << "WSAStartup failed: " << nResult << std::endl;
+		return 1;
+	}
+	struct sockaddr_in  serverAddress;   // declared as global
+	struct sockaddr_in  clientAddress; // declared as global
+	int len = sizeof(struct sockaddr); // declared as global
+	SOCKET s = NULL; // declared as global
+
+	memset(&serverAddress, 0, sizeof(serverAddress));
+	serverAddress.sin_family = AF_INET;
+	inet_pton(AF_INET, IP, &serverAddress.sin_addr);
+	//serverAddress.sin_addr.s_addr = inet_addr(IP);// INADDR_ANY;
+//	serverAddress.sin_addr =  inet_addr(IP);//INADDR_ANY;
+	serverAddress.sin_port = htons(PORT);
+	s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	//int c = connect(s, (struct sockaddr *)&serverAddress, sizeof(serverAddress));
+	if (s == INVALID_SOCKET)
+	{
+
+		printf(" Unable to create a socket \n");
+		printf(" Failed with error : %d\n", WSAGetLastError());
+		while (1) {}
+
+	}
+	else
+	{
+		std::cout << "CREATED" << std::endl;
+	}
+
+	if (bind(s, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0)
+	{
+		printf(" Unable to bind socket \n");
+		printf(" Failed with error : %d\n", WSAGetLastError());
+		while (1) {}
+	}
+	else
+	{
+		struct sockaddr_in sin;
+		socklen_t len = sizeof(sin);
+		if (getsockname(s, (struct sockaddr *)&sin, &len) == -1)
+			perror("getsockname");
+		else {
+			//printf("port number %d\n", ntohs(sin.sin_port));
+			//printf("IP number %d\n", inet_ntoa(sin.sin_addr));
+		}
+		printf(" Bound to socket .\n");
+		while(1){
+
+			//cout << "Received message from the Server: " << recvudp(s, MAX_MSG, serverAddress, len) << endl;
+			string str = recvudp(s, MAX_MSG, serverAddress, len);
+			if (getsockname(s, (struct sockaddr *)&sin, &len) == -1)
+				perror("getsockname");
+			else {
+			//	printf("port number %d\n", ntohs(serverAddress.sin_port));
+			//	printf("IP number %d\n", inet_ntoa(serverAddress.sin_addr));
+			}
+		}
+	}
+
+	WSACleanup();
+	return 0;
+
+	/**/
+}
+
+
+#endif

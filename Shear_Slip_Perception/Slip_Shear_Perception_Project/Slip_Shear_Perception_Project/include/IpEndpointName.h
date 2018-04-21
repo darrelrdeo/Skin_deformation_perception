@@ -29,6 +29,7 @@
 */
 #ifndef INCLUDED_IPENDPOINTNAME_H
 #define INCLUDED_IPENDPOINTNAME_H
+#define _CRT_SECURE_NO_WARNINGS
 
 
 class IpEndpointName{

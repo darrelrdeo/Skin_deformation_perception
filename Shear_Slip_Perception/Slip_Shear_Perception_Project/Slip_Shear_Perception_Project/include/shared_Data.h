@@ -13,14 +13,17 @@
 #include "cATIForceSensor.h"
 #include <stdint.h>
 #include "UdpSocket.h"
-#include "OSC_Listener.h"
+
 
 using namespace chai3d;
 using namespace std;
 
 // UDP Setup
-#define PORT 30000 // 
-#define IP ""
+#define PORT 50114 // 
+//#define IP "192.168.30.4"
+#define IP "192.168.30.197"
+#define UDP_Packet_Length  403
+#define MAX_MSG 361
 
 // Operation Mode
 #define DEMO		0
@@ -214,8 +217,7 @@ typedef struct {
 	string message;
 
 	// UDP
-	// OSC processing
-	OSC_Listener listener;             // "hears" messages passed through "Mind your OSCs" port
+	
 	
 	// state machine params
 	int experimentStateNumber;
@@ -255,6 +257,7 @@ typedef struct {
 
 
 	// BrainGate data params
+	double UDP_Data_Packet[UDP_Packet_Length];
 	double velocity_force_scalar;
 	double position_force_scalar;
 	double Fmax;

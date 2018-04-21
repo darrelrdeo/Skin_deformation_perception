@@ -28,7 +28,7 @@
 	WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 #include "NetworkingUtils.h"
-
+#define WIN32_LEAN_AND_MEAN
 #include <winsock2.h>   // this must come first to prevent errors with MSVC7
 #include <windows.h>
 #include <stdlib.h>

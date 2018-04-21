@@ -42,6 +42,7 @@ unsigned long IpEndpointName::GetHostByName( const char *s )
 
 void IpEndpointName::AddressAsString( char *s ) const
 {
+	
 	if( address == ANY_ADDRESS ){
 		sprintf( s, "<any>" );
 	}else{
