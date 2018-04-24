@@ -62,55 +62,6 @@ shared_data *sharedData;
 int main(int argc, char* argv[]) {
 
 
-	/*
-	//initialize socket and structure
-	int socket_info;
-	struct sockaddr_in server;
-	char incoming_message[UDP_Packet_Length];
-
-	//create socket
-	socket_info = socket(AF_INET, SOCK_STREAM, 0);
-	if (socket_info == -1) {
-		printf("Could not create socket");
-	}
-
-	//assign values
-	server.sin_addr.s_addr = inet_addr("192.168.30.4");
-	server.sin_family = AF_INET;
-	server.sin_port = htons(int(PORT));
-
-	//checks connection
-	if (bind(socket_info, (struct sockaddr *)&server, sizeof(server)) < 0) {
-		printf("Connection error");
-		return 1;
-	}
-	puts("Bind");
-/*
-	//Receive an incoming message
-	while (1) {
-		if (recv(socket_info, incoming_message, sizeof(incoming_message), 0) < 0) {
-			puts("Received failed");
-			return 1;
-		}
-		puts("Message received");
-		puts(incoming_message);
-	}
-	*/
-
-
-	//IpEndpointName IP_add;
-	//PacketListener packet;
-	//UdpSocket skt;
-	//U
-	//unsigned long add = unsigned long(IP);
-	//IP_add.address = add;
-
-	//IP_add.port = PORT;
-	//UdpListeningReceiveSocket skt(IP_add, P_listener);
-	
-//	bool bound = skt.IsBound();
-//	if (bound == 1) printf("BOUND!");
-
 
 	cGenericHapticDevicePtr hapticDevice[2];
 	// create a haptic device handler
@@ -352,7 +303,7 @@ int main(int argc, char *argv[])
 		while(1){
 
 			//cout << "Received message from the Server: " << recvudp(s, MAX_MSG, serverAddress, len) << endl;
-			string str = recvudp(s, MAX_MSG, serverAddress, len);
+			int i = recvudp(s, MAX_MSG, serverAddress, len);
 			if (getsockname(s, (struct sockaddr *)&sin, &len) == -1)
 				perror("getsockname");
 			else {

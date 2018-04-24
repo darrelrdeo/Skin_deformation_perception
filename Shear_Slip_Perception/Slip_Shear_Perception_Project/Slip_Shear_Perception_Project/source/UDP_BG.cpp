@@ -2,6 +2,11 @@
 #include "UDP_BG.h"
 #include <iostream>
 #include <stdlib.h>
+#include <cstdlib>
+#include <cstdint>
+#include <cassert>
+#include <bitset>
+
 
 using namespace std;
 
@@ -63,56 +68,83 @@ int udpsock(int port, const char* addr)
 }
 
 // function should return sender address info (for the code the server)
-string recvudp(int sock, const int size, sockaddr_in& SenderAddr, int& SenderAddrSize)
+int recvudp(int sock, const int size, sockaddr_in& SenderAddr, int& SenderAddrSize)
 {
 	// TODO: use std::vector<char> here instead of char array
 	char* buf = 0;
 	buf = new char[size];
+	//char buf[MAX_MSG];
 
 	int retsize = recvfrom(sock, buf, size, 0, (sockaddr*)&SenderAddr, &SenderAddrSize);
+
+	int i = 197;
+	
+		printf("Buf: 0x%x 0x%x 0x%x 0x%x\n", (unsigned)(unsigned char)buf[i], (unsigned)(unsigned char)buf[i + 1], (unsigned)(unsigned char)buf[i + 2], (unsigned)(unsigned char)buf[i + 3]);
 	//printf("LENGTH OF DATAGRAM: %d\n",retsize); //361 length datagram
-
+	//printf("\r%s", buf);
 	// snag bytes 198 - 201 as bytes for Xvel, 202 - 205
-	char* Xvel = 0;
-	char* Yvel = 0;
-	Xvel = new char[4]; // Char size is 1 byte
-	Yvel = new char[4]; 
+		char * Xvel_mem = 0;
+		char * Yvel_mem = 0;
+		Xvel_mem = new char[4];
+		Yvel_mem = new char[4];
+		memcpy(Xvel_mem, buf + 197, 4);
+		memcpy(Yvel_mem, buf + 201, 4);
 
-	Xvel[0] = buf[198 - 1];
-	Xvel[1] = buf[199 - 1];
-	Xvel[2] = buf[200 - 1];
-	Xvel[3] = buf[201 - 1];
+	//	std::vector<int8_t> Xvel;
+	//	std::vector<int8_t> Yvel;
 
-	Yvel[0] = buf[202 - 1];
-	Yvel[1] = buf[203 - 1];
-	Yvel[2] = buf[204 - 1];
-	Yvel[3] = buf[205 - 1];
-	float xf;
-	xf = stof(Xvel);
-	float yf;
-	yf = stof(Yvel);
+	//	Xvel.push_back(buf[197]);
+		//Xvel.push_back(buf[198]);
+		//Xvel.push_back(buf[199]);
+		//Xvel.push_back(buf[200]);
 
-	printf("\rX VEL : %f                                        Y Vel : %f", xf, yf);
+//		Yvel.push_back(buf[201]);
+	//	Yvel.push_back(buf[202]);
+	//	Yvel.push_back(buf[203]);
+	//	Yvel.push_back(buf[204]);
+
+
+
+	//memcpy(Xvel, buf + 197, 4);
+	//memcpy(&Yvel[0], &buf[201, sizeof(Yvel));
+
+
+//		Xvel_f.push_back(Xvel);
+		//Xvel_f = (float)Xvel;// reinterpret_cast<float*>(&Xvel);
+		//Yvel_f =// reinterpret_cast<float*>(&Yvel);
+		
+		//Xvel_f = (float)Xvel;
+		//Yvel_f = (float)Yvel;
+		float *  Xvel_f_ptr = (float *) Xvel_mem;
+		//= (float)*Xvel_mem;
+		//float  Yvel_f_ptr = (float) *Yvel_mem;
+
+//	printf("Xvel 0x%x 0x%x 0x%x 0x%x\n", (unsigned)(unsigned char)Xvel[0], (unsigned)(unsigned char)Xvel[1], (unsigned)(unsigned char)Xvel[2], (unsigned)(unsigned char)Xvel[3]);
+	printf("Xmem 0x%x 0x%x 0x%x 0x%x\n", (unsigned)(unsigned char)Xvel_mem[0], (unsigned)(unsigned char)Xvel_mem[1], (unsigned)(unsigned char)Xvel_mem[2], (unsigned)(unsigned char)Xvel_mem[3]);
+	printf("\rx VEL : %.*f                   ",10, *Xvel_f_ptr);
+	
 	if (retsize == -1)
 	{
 		cout << "\nRecv Error : " << WSAGetLastError();
 
 		if (WSAGetLastError() == WSAEWOULDBLOCK || WSAGetLastError() == 0)
 		{
-			return "";
+			return -1;
 		}
 
-		return "\0";
+		return 0;
 	}
 	else if (retsize < size)
 	{
 		buf[retsize] = NULL;
 	}
 
-	string str(Xvel);
+
+//	string str = "HI";
 	delete[] buf;
 
-	return str;
+	return( 1);
+		
 }
 
 // On the client side, prepare dest like this:
@@ -135,3 +167,29 @@ int sendudp(string str, sockaddr_in dest, int sock)
 
 
 
+
+// pack method for storing data in network,
+//   big endian, byte order (MSB first)
+// returns number of bytes packed
+// usage:
+//   float x, y, z;
+//   int i = 0;
+//   i += packFloat(&buffer[i], x);
+//   i += packFloat(&buffer[i], y);
+//   i += packFloat(&buffer[i], z);
+int packFloat(char *buf, float x) {
+	unsigned char *b = (unsigned char *)buf;
+	unsigned char *p = (unsigned char *)&x;
+#if defined (_M_IX86) || (defined (CPU_FAMILY) && (CPU_FAMILY == I80X86))
+	b[0] = p[3];
+	b[1] = p[2];
+	b[2] = p[1];
+	b[3] = p[0];
+#else
+	b[0] = p[0];
+	b[1] = p[1];
+	b[2] = p[2];
+	b[3] = p[3];
+#endif
+	return 4;
+}

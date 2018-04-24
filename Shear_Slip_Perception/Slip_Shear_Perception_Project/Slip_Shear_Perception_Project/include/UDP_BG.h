@@ -21,6 +21,7 @@ void updateUDP_BG(void);
 
 
 int udpsock(int port, const char* addr);
-std::string recvudp(int sock, const int size, sockaddr_in& SenderAddr, int& SenderAddrSize);
+int recvudp(int sock, const int size, sockaddr_in& SenderAddr, int& SenderAddrSize);
 int sendudp(std::string str, sockaddr_in dest, int sock);
+int packFloat(char *buf, float x);
 #endif  // UDP_BG_H
