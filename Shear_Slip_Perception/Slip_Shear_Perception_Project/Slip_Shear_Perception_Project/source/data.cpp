@@ -48,6 +48,9 @@ void setup(void) {
 	p_sharedData->velocity_force_scalar = p_sharedData->Fmax / BMI_Max_Vel;//0.000542236026376;
 	p_sharedData->position_force_scalar = p_sharedData->Fmax / BMI_Max_Vel; //0.000417101138737;
 
+	//BG Params
+	p_sharedData->UDP_BG_VelX = 0;
+	p_sharedData->UDP_BG_VelY = 0;
 	p_sharedData->velocity_MaxForce_scalar = 0; // computed scalar by dividing max shear force (Fmax) by velocity Magnitude (Vmag)
 	p_sharedData->BMI_command_update_time = 1; //ms
 
@@ -236,6 +239,10 @@ void saveOneTimeStep(void) {
 	temp.d_blockName = p_sharedData->blockName;		// name of the current block (i.e. Haptics_Block, Vision_Block)
 	temp.d_trialNum = p_sharedData->trialNum;			// current trial number
 	
+
+	// BG
+	temp.d_UDP_BG_VelX = p_sharedData->UDP_BG_VelX;
+	temp.d_UDP_BG_VelY = p_sharedData->UDP_BG_VelY;
 	temp.d_velocity_force_scalar = p_sharedData->velocity_force_scalar;
 	temp.d_position_force_scalar = p_sharedData->position_force_scalar;
 	temp.d_Fmax = p_sharedData->Fmax;
@@ -341,7 +348,7 @@ void recordTrial(void) {
 
     // iterate over vector, writing one time step at a time
     for (vector<save_data>::iterator it = p_sharedData->trialData.begin() ; it != p_sharedData->trialData.end(); ++it) {
-        fprintf(p_sharedData->outputFile,"%d %d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %lu %lu %lu %lu %lu %lu %lu %f %f %f %f %lu %f %f %f %f %f %f %f %f",
+        fprintf(p_sharedData->outputFile,"%d %d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %lu %lu %lu %lu %lu %lu %lu %f %f %f %f %lu %f %f %f %f %f %f %f %f %f %f",
                 	it->d_blockNum,
 					it->d_trialNum,
 					it->d_cursorPosX,
@@ -402,7 +409,9 @@ void recordTrial(void) {
 					it->d_phantomFreq,
 					it->d_joystickFreq,
 					it->d_experimentFreq,
-					it->d_timeElapsed
+					it->d_timeElapsed,
+					it->d_UDP_BG_VelX,
+					it->d_UDP_BG_VelY
 				);
 
 		// print to file

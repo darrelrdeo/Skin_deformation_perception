@@ -10,9 +10,15 @@
 //*******************************************************************************
 // *                                 INCLUDES                                    *
 // ******************************************************************************/
+
+
 #define _CRT_SECURE_NO_WARNINGS
+
 #include <winsock2.h>
-#include <Windows.h>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+#include "UDP_BG.h"
 #include <assert.h>
 #include <cstdio>
 #include <stdio.h>
@@ -30,19 +36,24 @@
 #include "data.h"
 #include "UdpSocket.h"
 #include "PacketListener.h"
-#include "UDP_BG.h"
-#include <Ws2tcpip.h>
 
+// library inclusion to work with oscpack library
+#pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "winmm.lib")
+/*
 // Link with ws2_32.lib
 #pragma comment(lib, "Ws2_32.lib")
-
+// library inclusion to work with oscpack library
+#pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "winmm.lib")
+*/
 using namespace chai3d;
 using namespace std;
 
 // Main or Test Harness Selection
-//#define MAIN
+#define MAIN
 //#define TEST_NIDAQ_FT
-#define TEST_UDP
+//#define TEST_UDP
 
 
 //------------------------
@@ -100,6 +111,7 @@ int main(int argc, char* argv[]) {
 	linkSharedDataToPhantom(*sharedData);
 	linkSharedDataToExperiment(*sharedData);
 	linkSharedDataToGraphics(*sharedData);
+	linkSharedDataToUDP_BG(*sharedData);
 
 	// call setup functions
 	setup();
@@ -113,9 +125,10 @@ int main(int argc, char* argv[]) {
 	cThread* phantomThread = new cThread();
 	cThread* experimentThread = new cThread();
 	cThread* joystickThread = new cThread();
-
+	cThread* UDP_thread = new cThread();
 
 	// initialize devices
+	initUDP_BG();
 	if ((sharedData->input_device == INPUT_PHANTOM) || ((sharedData->output_device == OUTPUT_PHANTOM)))     initPhantom();
 
 

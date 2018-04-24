@@ -1,6 +1,7 @@
 
 #include "experiment.h"
 #include "Phantom.h"
+#include "UDP_BG.h"
 #include <math.h>
 #include <cmath>
 #include <random>
@@ -147,7 +148,7 @@ void initExperiment(void) {
     // generate filename and open file for writing
     sprintf(filename, "Subj_%d_Session_%d.dat", subjectNum, session);
     p_sharedData->outputFile = fopen(filename,"w");
-    fprintf(p_sharedData->outputFile, "blockNum, trialNum, cursorPosX, cursorPosY, cursorPosZ, cursorPosX_OneAgo, cursorPosY_OneAgo, cursorPosZ_OneAgo, cursorVelX, cursorVelY, cursorVelZ, inputPhantomPosX, inputPhantomPosY, inputPhantomPosZ, inputPhantomVelX, inputPhantomVelY, inputPhantomVelZ, inputPhantomSwitch, outputPhantomPosX, outputPhantomPosY, outputPhantomPosZ, outputPhantomVelX, outputPhantomVelY, outputPhantomVelZ, outputPhantomSwitch, outputPhantomForce_X, outputPhantomForce_Y, outputPhantomForce_Z, outputPhantomForce_Desired_X, outputPhantomForce_Desired_Y, outputPhantomForce_Desired_Z, outputPhantomForce_Desired_Tool_X, outputPhantomForce_Desired_Tool_Y, outputPhantomForce_Desired_Tool_Z, outputPhantomForce_Desired_Tool_angle_deg, Measured_Force_X, Measured_Force_Y, Measured_Force_Z, joystickPosX, joystickPosY, joystickSwitch, phantomLoopTimeStamp, joystickLoopTimeStamp, experimentLoopTimeStamp,recordTimeStamp, phantomLoopDelta, joystickLoopDelta, experimentLoopDelta, velocity_force_scalar, position_force_scalar, Fmax, velocity_MaxForce_scalar, BMI_command_update_time_MS, scaled_posX_command, scaled_posY_command, scaled_velX_command, scaled_velY_command, phantomFreq, joystickFreq, experimentFreq, timeElapsed\n");
+    fprintf(p_sharedData->outputFile, "blockNum, trialNum, cursorPosX, cursorPosY, cursorPosZ, cursorPosX_OneAgo, cursorPosY_OneAgo, cursorPosZ_OneAgo, cursorVelX, cursorVelY, cursorVelZ, inputPhantomPosX, inputPhantomPosY, inputPhantomPosZ, inputPhantomVelX, inputPhantomVelY, inputPhantomVelZ, inputPhantomSwitch, outputPhantomPosX, outputPhantomPosY, outputPhantomPosZ, outputPhantomVelX, outputPhantomVelY, outputPhantomVelZ, outputPhantomSwitch, outputPhantomForce_X, outputPhantomForce_Y, outputPhantomForce_Z, outputPhantomForce_Desired_X, outputPhantomForce_Desired_Y, outputPhantomForce_Desired_Z, outputPhantomForce_Desired_Tool_X, outputPhantomForce_Desired_Tool_Y, outputPhantomForce_Desired_Tool_Z, outputPhantomForce_Desired_Tool_angle_deg, Measured_Force_X, Measured_Force_Y, Measured_Force_Z, joystickPosX, joystickPosY, joystickSwitch, phantomLoopTimeStamp, joystickLoopTimeStamp, experimentLoopTimeStamp,recordTimeStamp, phantomLoopDelta, joystickLoopDelta, experimentLoopDelta, velocity_force_scalar, position_force_scalar, Fmax, velocity_MaxForce_scalar, BMI_command_update_time_MS, scaled_posX_command, scaled_posY_command, scaled_velX_command, scaled_velY_command, phantomFreq, joystickFreq, experimentFreq, timeElapsed, UDP_BG_VelX, UDP_BG_VelY\n");
     
     // enter start-up mode, with force feedback off for safety
    	p_sharedData->opMode = EXPERIMENT;
@@ -783,7 +784,7 @@ void closeExperiment(void) {
     
     p_sharedData->experimentStateNumber = THANKS;
     if (p_sharedData->outputFile != NULL) fclose(p_sharedData->outputFile);
-    
+	closeUDP_BG();
 }
 
 

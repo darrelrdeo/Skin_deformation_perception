@@ -96,6 +96,8 @@ typedef struct {
 	int d_trialNum;			// current trial number
 
 	// BrainGate data params
+	float d_UDP_BG_VelX;
+	float d_UDP_BG_VelY;
 	double d_velocity_force_scalar;
 	double d_position_force_scalar;
 	double d_Fmax;
@@ -257,7 +259,8 @@ typedef struct {
 
 
 	// BrainGate data params
-	double UDP_Data_Packet[UDP_Packet_Length];
+	float UDP_BG_VelX;
+	float UDP_BG_VelY;
 	double velocity_force_scalar;
 	double position_force_scalar;
 	double Fmax;
