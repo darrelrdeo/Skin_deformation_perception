@@ -34,6 +34,10 @@ static cLabel* blockType;
 static cLabel* trial;             // label to display trial count
 static cLabel* message;           // label to display message to user
 
+// BG
+static cLabel* UDP_Xvel;
+static cLabel* UDP_Yvel;
+
 // output Phantom forces via GetForce()
 static cLabel* XForce;			  // label to display the x force
 static cLabel* YForce;			  // label to display the y force
@@ -167,6 +171,10 @@ void initGraphics(int argc, char* argv[]) {
 	experimentState = new cLabel(font);
 	blockType = new cLabel(font);
 
+	// BG
+	UDP_Xvel = new cLabel(font);
+	UDP_Yvel = new cLabel(font);
+
 	input_phantomPosX = new cLabel(font);
 	input_phantomPosY = new cLabel(font);
 	input_phantomPosZ = new cLabel(font);
@@ -228,7 +236,8 @@ void initGraphics(int argc, char* argv[]) {
 	camera->m_frontLayer->addChild(input_phantomPosY);
 	camera->m_frontLayer->addChild(input_phantomPosZ);
 
-
+	camera->m_frontLayer->addChild(UDP_Xvel);
+	camera->m_frontLayer->addChild(UDP_Yvel);
 
 	camera->m_frontLayer->addChild(output_phantomPosX);
 	camera->m_frontLayer->addChild(output_phantomPosY);
@@ -322,7 +331,8 @@ void updateGraphics(void) {
 	YForce_Measured->setString("YForce Measured: " + to_string(static_cast<long double>(p_sharedData->force[1])));
 	ZForce_Measured->setString("ZForce Measured: " + to_string(static_cast<long double>(p_sharedData->force[2])));
 
-
+	UDP_Xvel->setString("UDP XVel: " + to_string(static_cast<long double>(p_sharedData->UDP_BG_VelX)));
+	UDP_Yvel->setString("UDP YVel: " + to_string(static_cast<long double>(p_sharedData->UDP_BG_VelY)));
 
     cursorPosX->setString("CursorPos X: " + to_string(static_cast<long double>(p_sharedData->cursorPosX)));
 	cursorPosY->setString("CursorPos Y: " + to_string(static_cast<long double>(p_sharedData->cursorPosY)));
@@ -366,8 +376,10 @@ void updateGraphics(void) {
 
 	outputPhantomForce_Desired_Tool_angle_deg->setLocalPos(10, (int)(windowH - i * input_phantomPosX->getHeight()), 0); i++;
 
+	UDP_Xvel->setLocalPos(10, (int)(windowH - i * UDP_Xvel->getHeight()), 0); i++;
+	UDP_Yvel->setLocalPos(10, (int)(windowH - i * UDP_Yvel->getHeight()), 0); i++;
 
-	trial->setLocalPos((int) (windowW - trial->getWidth() - 10), (int) (windowH - 2.0 * trial->getHeight()), 0);
+	trial->setLocalPos((int) (windowW - trial->getWidth() - 10), (int) (windowH - 2.0 * trial->getHeight()), 0); 
 	
 	blockType->setLocalPos((int) (windowW - blockType->getWidth() - 10), (int) (0), 0); i++;
         

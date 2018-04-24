@@ -1,13 +1,14 @@
 
 #ifndef UDP_BG_H
 #define UDP_BG_H
-
-
-#include <winsock2.h>
-#include <windows.h>
+//#define WIN32_LEAN_AND_MEAN
+//#include <winsock2.h>
+//#include <windows.h>
 #include <string>
 
-
+// library inclusion to work with oscpack library
+//#pragma comment(lib, "ws2_32.lib")
+//#pragma comment(lib, "winmm.lib")
 
 #include "UdpSocket.h"
 //#include "OSC_Listener.h"

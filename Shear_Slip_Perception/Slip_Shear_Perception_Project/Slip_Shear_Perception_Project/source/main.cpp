@@ -10,15 +10,9 @@
 //*******************************************************************************
 // *                                 INCLUDES                                    *
 // ******************************************************************************/
-
-
 #define _CRT_SECURE_NO_WARNINGS
-
 #include <winsock2.h>
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-#include "UDP_BG.h"
+#include <Windows.h>
 #include <assert.h>
 #include <cstdio>
 #include <stdio.h>
@@ -36,17 +30,13 @@
 #include "data.h"
 #include "UdpSocket.h"
 #include "PacketListener.h"
+#include "UDP_BG.h"
+#include <Ws2tcpip.h>
 
-// library inclusion to work with oscpack library
-#pragma comment(lib, "ws2_32.lib")
-#pragma comment(lib, "winmm.lib")
-/*
 // Link with ws2_32.lib
 #pragma comment(lib, "Ws2_32.lib")
-// library inclusion to work with oscpack library
-#pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "winmm.lib")
-*/
+
 using namespace chai3d;
 using namespace std;
 
@@ -63,6 +53,7 @@ using namespace std;
 
 cThread* phantomThread;
 cThread* experimentThread;
+cThread* udpThread;
 shared_data *sharedData;
 
 
@@ -125,10 +116,12 @@ int main(int argc, char* argv[]) {
 	cThread* phantomThread = new cThread();
 	cThread* experimentThread = new cThread();
 	cThread* joystickThread = new cThread();
-	cThread* UDP_thread = new cThread();
+	cThread* udpThread = new cThread();
 
-	// initialize devices
+	// init threads
 	initUDP_BG();
+	
+	// initialize devices
 	if ((sharedData->input_device == INPUT_PHANTOM) || ((sharedData->output_device == OUTPUT_PHANTOM)))     initPhantom();
 
 
@@ -146,6 +139,7 @@ int main(int argc, char* argv[]) {
 	// start threads
 	if ((sharedData->input_device == INPUT_PHANTOM) || ((sharedData->output_device == OUTPUT_PHANTOM))) phantomThread->start(updatePhantom, CTHREAD_PRIORITY_HAPTICS);
 	experimentThread->start(updateExperiment, CTHREAD_PRIORITY_GRAPHICS);
+	udpThread->start(updateUDP_BG, CTHREAD_PRIORITY_HAPTICS);
 	glutTimerFunc(50, graphicsTimer, 0);
 	glutMainLoop();
 
@@ -263,6 +257,8 @@ int main(int argc, char* argv[]) {
 
 int main(int argc, char *argv[])
 {
+	sharedData = new shared_data();
+	linkSharedDataToUDP_BG(*sharedData);
 
 	WSADATA wsaData;
 	int nResult = WSAStartup(MAKEWORD(2, 2), &wsaData);

@@ -303,6 +303,7 @@ typedef struct {
 	cFrequencyCounter phantomFreqCounter;
 	cFrequencyCounter joystickFreqCounter;
 	cFrequencyCounter experimentFreqCounter;
+	cFrequencyCounter udpFreqCounter;
 
 	// Input Phantom state
 	double inputPhantomPosX;
@@ -362,22 +363,27 @@ typedef struct {
 	cPrecisionClock m_joystickLoopTimer;
 	cPrecisionClock m_expLoopTimer;
 	cPrecisionClock m_noiseLoopTimer;
+	cPrecisionClock m_UDP_BG_LoopTimer;
 	
 	// Time Stamps
 	DWORD phantomLoopTimeStamp;
 	DWORD joystickLoopTimeStamp;
 	DWORD experimentLoopTimeStamp;
 	DWORD recordTimeStamp;
+	DWORD udp_BG_TimeStamp;
 
 	// Loop Rate Stamps (delta Time)
 	DWORD phantomLoopDelta;
 	DWORD joystickLoopDelta;
 	DWORD experimentLoopDelta;
+	DWORD udp_BG_LoopDelta;
 
 	// Frequency Counter reported loop frequency in Hz
 	double phantomFreq;
 	double joystickFreq;
 	double experimentFreq;
+	double udp_BG_Freq;
+
 	
 	// experiment trial elapsed time
 	double timeElapsed;

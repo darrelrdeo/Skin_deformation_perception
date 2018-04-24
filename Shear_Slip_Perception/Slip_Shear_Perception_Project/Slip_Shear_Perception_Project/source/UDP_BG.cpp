@@ -1,5 +1,7 @@
 
-
+#define _CRT_SECURE_NO_WARNINGS
+#include <winsock2.h>
+#include <Windows.h>
 #include "UDP_BG.h"
 #include <iostream>
 #include <stdlib.h>
@@ -7,22 +9,21 @@
 #include <cstdint>
 #include <cassert>
 #include <bitset>
-
-
-#include "UdpSocket.h"
-#include "PacketListener.h"
 #include <Ws2tcpip.h>
-
+// Link with ws2_32.lib
+#pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "winmm.lib")
 using namespace std;
 
-
-// Global Vars
-SOCKET s = NULL;
-struct sockaddr_in  serverAddress;  
+struct sockaddr_in  serverAddress;   // declared as global
 int len = sizeof(struct sockaddr); // declared as global
-
+SOCKET s = NULL; // declared as global
 
 static shared_data* p_sharedData;  // structure for sharing data between threads
+								   // thread timestamp vars
+static DWORD currTime = 0;
+static DWORD lastTime = 0;
+
 
 
 								   // point p_sharedData to sharedData, which is the data shared between all threads
@@ -32,16 +33,14 @@ void linkSharedDataToUDP_BG(shared_data& sharedData) {
 
 }
 
-// reset 
+// reset cognitive powers
 void initUDP_BG(void) {
-
 	WSADATA wsaData;
 	int nResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
 	if (nResult != 0) {
 		std::cout << "WSAStartup failed: " << nResult << std::endl;
 
 	}
-	
 
 	memset(&serverAddress, 0, sizeof(serverAddress));
 	serverAddress.sin_family = AF_INET;
@@ -57,24 +56,36 @@ void initUDP_BG(void) {
 		printf(" Unable to create a socket \n");
 		printf(" Failed with error : %d\n", WSAGetLastError());
 
+
 	}
 	else
 	{
-		std::cout << " SOCKET CREATED\n" << std::endl;
+		std::cout << "CREATED" << std::endl;
 	}
 
 	if (bind(s, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0)
 	{
 		printf(" Unable to bind socket \n");
 		printf(" Failed with error : %d\n", WSAGetLastError());
+
 	}
 	else
 	{
-
+		struct sockaddr_in sin;
+		socklen_t len = sizeof(sin);
+		if (getsockname(s, (struct sockaddr *)&sin, &len) == -1)
+			perror("getsockname");
+		else {
+			//printf("port number %d\n", ntohs(sin.sin_port));
+			//printf("IP number %d\n", inet_ntoa(sin.sin_addr));
+		}
 		printf(" Bound to socket .\n");
-	
-		
+
 	}
+
+	// initialize device loop timer
+	p_sharedData->m_UDP_BG_LoopTimer.setTimeoutPeriodSeconds(LOOP_TIME);
+	p_sharedData->m_UDP_BG_LoopTimer.start();
 
 
 
@@ -83,17 +94,46 @@ void initUDP_BG(void) {
 // plug in the socket to start listening to Emotiv
 void updateUDP_BG(void) {
 
-	int i = recvudp(s, MAX_MSG, serverAddress, len);
+	// initialize frequency counter
+	p_sharedData->udpFreqCounter.reset();
+
+	// check whether the simulation is running
+	while (p_sharedData->simulationRunning) {
+
+		// run loop only if phantomLoopTimer timeout has occurred
+		if (p_sharedData->m_UDP_BG_LoopTimer.timeoutOccurred()) {
+
+			// ensure the timer has stopped for this loop
+			p_sharedData->m_UDP_BG_LoopTimer.stop();
+
+			// Get timestamp and compute the delta for looprate
+			currTime = timeGetTime();
+			DWORD delta = currTime - lastTime;
+
+			// store time stamps for book-keeping
+			p_sharedData->udp_BG_LoopDelta = delta;
+			p_sharedData->udp_BG_TimeStamp = currTime;
 
 
+			int i = recvudp(s, MAX_MSG, serverAddress, len);
+
+			// update frequency counter
+			p_sharedData->udpFreqCounter.signal(1);
+			p_sharedData->udp_BG_Freq = p_sharedData->udpFreqCounter.getFrequency();
+
+			// restart loop timer after update completion
+			p_sharedData->m_UDP_BG_LoopTimer.start(true);
+
+			// update timestamp var last
+			lastTime = currTime;
+		}
+	}
+	
 }
 
-
-void closeUDP_BG(void) {
-
+void closeUDP_BG(void){
 	WSACleanup();
-
-
+	
 }
 
 
@@ -138,7 +178,7 @@ int recvudp(int sock, const int size, sockaddr_in& SenderAddr, int& SenderAddrSi
 
 	int i = 197;
 	
-		//printf("Buf: 0x%x 0x%x 0x%x 0x%x\n", (unsigned)(unsigned char)buf[i], (unsigned)(unsigned char)buf[i + 1], (unsigned)(unsigned char)buf[i + 2], (unsigned)(unsigned char)buf[i + 3]);
+	//	printf("Buf: 0x%x 0x%x 0x%x 0x%x\n", (unsigned)(unsigned char)buf[i], (unsigned)(unsigned char)buf[i + 1], (unsigned)(unsigned char)buf[i + 2], (unsigned)(unsigned char)buf[i + 3]);
 	//printf("LENGTH OF DATAGRAM: %d\n",retsize); //361 length datagram
 	//printf("\r%s", buf);
 	// snag bytes 198 - 201 as bytes for Xvel, 202 - 205
@@ -148,24 +188,19 @@ int recvudp(int sock, const int size, sockaddr_in& SenderAddr, int& SenderAddrSi
 		Yvel_mem = new char[4];
 		memcpy(Xvel_mem, buf + 197, 4);
 		memcpy(Yvel_mem, buf + 201, 4);
-
+		
 	
 		float * Xvel_f_ptr = (float *) Xvel_mem;
 		float * Yvel_f_ptr = (float *) Yvel_mem;
 		//= (float)*Xvel_mem;
 		//float  Yvel_f_ptr = (float) *Yvel_mem;
-		float Xvel_f = *Xvel_f_ptr;
-		float Yvel_f = *Yvel_f_ptr;
-		
-		// update p_sharedData struct
-		p_sharedData->UDP_BG_VelX = Xvel_f;
-		p_sharedData->UDP_BG_VelY = Yvel_f;
-
+		p_sharedData->UDP_BG_VelX = *Xvel_f_ptr;
+		p_sharedData->UDP_BG_VelY = *Yvel_f_ptr;
 
 //	printf("Xvel 0x%x 0x%x 0x%x 0x%x\n", (unsigned)(unsigned char)Xvel[0], (unsigned)(unsigned char)Xvel[1], (unsigned)(unsigned char)Xvel[2], (unsigned)(unsigned char)Xvel[3]);
 //	printf("Xmem 0x%x 0x%x 0x%x 0x%x\n", (unsigned)(unsigned char)Xvel_mem[0], (unsigned)(unsigned char)Xvel_mem[1], (unsigned)(unsigned char)Xvel_mem[2], (unsigned)(unsigned char)Xvel_mem[3]);
-//	printf("\rx VEL : %.*f                   ",10, *Xvel_f_ptr);
-	
+	//printf("\rx VEL : %.*f                   ",10, p_sharedData->UDP_BG_VelX);
+	//printf("HERE\n");
 	if (retsize == -1)
 	{
 		cout << "\nRecv Error : " << WSAGetLastError();
