@@ -37,6 +37,8 @@ static cLabel* message;           // label to display message to user
 // BG
 static cLabel* UDP_Xvel;
 static cLabel* UDP_Yvel;
+static cLabel* UDP_TStamp;
+static cLabel* UDP_Gain;
 
 // output Phantom forces via GetForce()
 static cLabel* XForce;			  // label to display the x force
@@ -174,6 +176,8 @@ void initGraphics(int argc, char* argv[]) {
 	// BG
 	UDP_Xvel = new cLabel(font);
 	UDP_Yvel = new cLabel(font);
+	UDP_TStamp = new cLabel(font);
+	UDP_Gain = new cLabel(font);
 
 	input_phantomPosX = new cLabel(font);
 	input_phantomPosY = new cLabel(font);
@@ -238,6 +242,8 @@ void initGraphics(int argc, char* argv[]) {
 
 	camera->m_frontLayer->addChild(UDP_Xvel);
 	camera->m_frontLayer->addChild(UDP_Yvel);
+	camera->m_frontLayer->addChild(UDP_TStamp);
+	camera->m_frontLayer->addChild(UDP_Gain);
 
 	camera->m_frontLayer->addChild(output_phantomPosX);
 	camera->m_frontLayer->addChild(output_phantomPosY);
@@ -334,6 +340,10 @@ void updateGraphics(void) {
 	UDP_Xvel->setString("UDP XVel: " + to_string(static_cast<long double>(p_sharedData->UDP_BG_VelX)));
 	UDP_Yvel->setString("UDP YVel: " + to_string(static_cast<long double>(p_sharedData->UDP_BG_VelY)));
 
+
+	UDP_TStamp->setString("UDP TS: " + to_string(static_cast<long double>(p_sharedData->UDP_TStamp)));
+	UDP_Gain->setString("UDP Gain: " + to_string(static_cast<long double>(p_sharedData->UDP_BG_Gain)));
+
     cursorPosX->setString("CursorPos X: " + to_string(static_cast<long double>(p_sharedData->cursorPosX)));
 	cursorPosY->setString("CursorPos Y: " + to_string(static_cast<long double>(p_sharedData->cursorPosY)));
 	cursorPosZ->setString("CursorPos Z: " + to_string(static_cast<long double>(p_sharedData->cursorPosZ)));
@@ -378,6 +388,8 @@ void updateGraphics(void) {
 
 	UDP_Xvel->setLocalPos(10, (int)(windowH - i * UDP_Xvel->getHeight()), 0); i++;
 	UDP_Yvel->setLocalPos(10, (int)(windowH - i * UDP_Yvel->getHeight()), 0); i++;
+	UDP_TStamp->setLocalPos(10, (int)(windowH - i * UDP_TStamp->getHeight()), 0); i++;
+	UDP_Gain->setLocalPos(10, (int)(windowH - i * UDP_Gain->getHeight()), 0); i++;
 
 	trial->setLocalPos((int) (windowW - trial->getWidth() - 10), (int) (windowH - 2.0 * trial->getHeight()), 0); 
 	
@@ -559,7 +571,46 @@ void respToKey(unsigned char key, int x, int y) {
 	}
 
 
+	// BMI Tracking sub-state machine
+	if (key == 'a')
+	{
+		
+		// log the desired z normal force
+		p_sharedData->outputNormalForce_Set = p_sharedData->outputPhantomForce_Desired_Tool_Z;
 
+		// start timer for next state of BMI tracking 
+
+		p_sharedData->timer->start(true);
+		// set demoState number and name
+		p_sharedData->experimentStateNumber = PRE_BLOCK;
+		p_sharedData->experimentStateName = "Pre Block";
+
+		// set next state to go to after Pre_Block
+		p_sharedData->nextExperimentStateNumber = TRACK_T5_DIR;
+		p_sharedData->BG_Vel_Control_Mapping = UDP_BG_CONTROL_DIRECTION;
+
+
+	}
+
+	// BMI Tracking sub-state machine
+	if (key == 's')
+	{
+
+		// log the desired z normal force
+		p_sharedData->outputNormalForce_Set = p_sharedData->outputPhantomForce_Desired_Tool_Z;
+
+		// start timer for next state of BMI tracking 
+
+		p_sharedData->timer->start(true);
+		// set demoState number and name
+		p_sharedData->experimentStateNumber = PRE_BLOCK;
+		p_sharedData->experimentStateName = "Pre Block";
+
+		// set next state to go to after Pre_Block
+		p_sharedData->nextExperimentStateNumber = TRACK_T5_NONLINEAR;
+		p_sharedData->BG_Vel_Control_Mapping = UDP_BG_CONTROL_NONLINEAR;
+
+	}
 
 	// nano 17 zero
 	if (key == 'n'){
@@ -574,7 +625,7 @@ void respToKey(unsigned char key, int x, int y) {
 		p_sharedData->outputZeroPosZ = p_sharedData->outputPhantomPosZ;
 		p_sharedData->output_ZeroRotation = p_sharedData->outputPhantomRotation;
 		//p_sharedData->experimentStateNumber = IDLE;
-		p_sharedData->message = "Adjust forces in tool frame: Z (7,9), Y (4,6), X (2,8) by 0.1N. \n Press (T) for Test Force \n (B) for BMI Velocity tracking \n (C) for BMI Velocity Direction tracking \n (K) for BMI Nonlinear VelocityTracking \n (D) for Direction Perception user study";
+		p_sharedData->message = "Adjust forces in tool frame: Z (7,9), Y (4,6), X (2,8) by 0.1N. \n Press (T) for Test Force \n (B) for BMI Velocity tracking \n (C) for BMI Velocity Direction tracking \n (K) for BMI Nonlinear VelocityTracking \n (D) for Direction Perception user study \n (A) T5 Direction \n (S) T5 NonLinear";
 
 
 

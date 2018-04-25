@@ -21,9 +21,9 @@ using namespace std;
 // UDP Setup
 #define PORT 50114 // 
 //#define IP "192.168.30.4"
-#define IP "192.168.30.197"
+#define IP "192.168.30.197" // Always want to use my computer's IP address for IPV4
 #define UDP_Packet_Length  403
-#define MAX_MSG 361
+#define MAX_MSG 381
 
 // Operation Mode
 #define DEMO		0
@@ -47,6 +47,20 @@ using namespace std;
 #define BMI_Max_Vel_Nonlinear 212
 #define BMI_Max_Pos_Nonlinear 225
 
+// UDP BMI Defines
+#define UDP_BG_CONTROL_LINEAR 1
+#define UDP_BG_CONTROL_NONLINEAR 2
+#define UDP_BG_CONTROL_DIRECTION 3
+
+// UDP BMI Control Params
+#define BETA_PARAM 0.0001
+#define BETA_SAT 0.5
+#define BETA_DEAD_SCALAR 0.2
+#define BETA_PARAM_DIVIDER 2
+# define DIRECTION_SHEAR_MAX 0.4
+
+
+
 // Experiment States
 #define START_UP		0
 #define ZERO_TACTOR		14
@@ -54,6 +68,8 @@ using namespace std;
 #define TRACK_BMI		18
 #define TRACK_BMI_DIRECTION 19
 #define TRACK_BMI_NONLINEAR 21
+#define TRACK_T5_DIR			25
+#define TRACK_T5_NONLINEAR      26
 #define PERCEPTION_EXPERIMENT_TRIAL 20
 #define RETURN_SHEAR_TO_ZERO 22
 #define RETURN_NORMAL_TO_ZERO 23
@@ -96,8 +112,11 @@ typedef struct {
 	int d_trialNum;			// current trial number
 
 	// BrainGate data params
+	int d_BG_Vel_Control_Mapping;
+	UINT32 d_UDP_TStamp;
 	float d_UDP_BG_VelX;
 	float d_UDP_BG_VelY;
+	float d_UDP_BG_Gain;
 	double d_velocity_force_scalar;
 	double d_position_force_scalar;
 	double d_Fmax;
@@ -259,8 +278,12 @@ typedef struct {
 
 
 	// BrainGate data params
+	int BG_Vel_Control_Mapping;
+	UINT32 UDP_TStamp;
 	float UDP_BG_VelX;
 	float UDP_BG_VelY;
+	float UDP_BG_Gain;
+	float UDP_BG_velocity_to_force_scalar;
 	double velocity_force_scalar;
 	double position_force_scalar;
 	double Fmax;

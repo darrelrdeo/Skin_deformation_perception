@@ -44,13 +44,16 @@ void setup(void) {
 
 										// BrainGate data params
 
-	p_sharedData->Fmax = 0.4;			// shear force maximum
+	p_sharedData->Fmax = DIRECTION_SHEAR_MAX;			// shear force maximum
 	p_sharedData->velocity_force_scalar = p_sharedData->Fmax / BMI_Max_Vel;//0.000542236026376;
-	p_sharedData->position_force_scalar = p_sharedData->Fmax / BMI_Max_Vel; //0.000417101138737;
+	p_sharedData->position_force_scalar = p_sharedData->Fmax / BMI_Max_Pos; //0.000417101138737;
+	//p_sharedData->UDP_BG_velocity_to_force_scalar = 
 
 	//BG Params
 	p_sharedData->UDP_BG_VelX = 0;
 	p_sharedData->UDP_BG_VelY = 0;
+	p_sharedData->UDP_TStamp = 0;
+	p_sharedData->UDP_BG_Gain = 0;
 	p_sharedData->velocity_MaxForce_scalar = 0; // computed scalar by dividing max shear force (Fmax) by velocity Magnitude (Vmag)
 	p_sharedData->BMI_command_update_time = 1; //ms
 
@@ -202,6 +205,14 @@ void setup(void) {
 		if (response == '1') p_sharedData->output_device = OUTPUT_PHANTOM;
 		else if (response == '2') p_sharedData->output_device = OUTPUT_DELTA;
 
+		// ask for type of output device
+		printf("\nWhat is your Control Type?");
+		printf("\n(L) LINEAR, (N) NONLINEAR, (D) DIRECTION\n");
+		cin >> response;
+		if (response == 'l') p_sharedData->BG_Vel_Control_Mapping = UDP_BG_CONTROL_LINEAR;
+		else if (response == 'n') p_sharedData->BG_Vel_Control_Mapping = UDP_BG_CONTROL_NONLINEAR;
+		else if (response == 'd') p_sharedData->BG_Vel_Control_Mapping = UDP_BG_CONTROL_DIRECTION;
+
 		// set operation mode to experiment
         p_sharedData->opMode = EXPERIMENT;
     }
@@ -241,6 +252,8 @@ void saveOneTimeStep(void) {
 	
 
 	// BG
+	temp.d_UDP_TStamp = p_sharedData->UDP_TStamp;
+	temp.d_UDP_BG_Gain = p_sharedData->UDP_BG_Gain;
 	temp.d_UDP_BG_VelX = p_sharedData->UDP_BG_VelX;
 	temp.d_UDP_BG_VelY = p_sharedData->UDP_BG_VelY;
 	temp.d_velocity_force_scalar = p_sharedData->velocity_force_scalar;
@@ -344,11 +357,11 @@ void saveOneTimeStep(void) {
 
 // write data to file from current trial
 void recordTrial(void) {
- 
+	//DWORD start_t = timeGetTime();
 
     // iterate over vector, writing one time step at a time
     for (vector<save_data>::iterator it = p_sharedData->trialData.begin() ; it != p_sharedData->trialData.end(); ++it) {
-        fprintf(p_sharedData->outputFile,"%d %d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %lu %lu %lu %lu %lu %lu %lu %f %f %f %f %lu %f %f %f %f %f %f %f %f %f %f",
+        fprintf(p_sharedData->outputFile,"%d %d %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %lu %lu %lu %lu %lu %lu %lu %f %f %f %f %lu %f %f %f %f %f %f %f %f %f %f %f %u",
                 	it->d_blockNum,
 					it->d_trialNum,
 					it->d_cursorPosX,
@@ -411,7 +424,9 @@ void recordTrial(void) {
 					it->d_experimentFreq,
 					it->d_timeElapsed,
 					it->d_UDP_BG_VelX,
-					it->d_UDP_BG_VelY
+					it->d_UDP_BG_VelY,
+					it->d_UDP_BG_Gain,
+					it->d_UDP_TStamp
 				);
 
 		// print to file
@@ -421,7 +436,9 @@ void recordTrial(void) {
     
     // clear vector for next segment and signal that recording is done
     p_sharedData->trialData.clear();
+	//DWORD end_t = timeGetTime();
+	//DWORD Total_t = end_t - start_t;
 
-	printf("\n\nFINISHED RECORDING\n\n");
+	//printf("\n\nFINISHED RECORDING in %ul ms\n\n", Total_t);
     
 }

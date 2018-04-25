@@ -10,6 +10,9 @@
 #include <cassert>
 #include <bitset>
 #include <Ws2tcpip.h>
+#include <math.h>
+
+//#include "Phantom.h"
 // Link with ws2_32.lib
 #pragma comment(lib, "Ws2_32.lib")
 #pragma comment(lib, "winmm.lib")
@@ -24,8 +27,12 @@ static shared_data* p_sharedData;  // structure for sharing data between threads
 static DWORD currTime = 0;
 static DWORD lastTime = 0;
 
+cMatrix3d R_about_Z;
+
+cVector3d Vel_vector_rotated;
 
 
+cVector3d Vel_vector;
 								   // point p_sharedData to sharedData, which is the data shared between all threads
 void linkSharedDataToUDP_BG(shared_data& sharedData) {
 
@@ -133,8 +140,16 @@ void updateUDP_BG(void) {
 
 void closeUDP_BG(void){
 	WSACleanup();
-	
+	 
 }
+
+
+void convert_UDP_Vel_To_Control(void) {
+
+
+}
+
+
 
 
 
@@ -184,18 +199,55 @@ int recvudp(int sock, const int size, sockaddr_in& SenderAddr, int& SenderAddrSi
 	// snag bytes 198 - 201 as bytes for Xvel, 202 - 205
 		char * Xvel_mem = 0;
 		char * Yvel_mem = 0;
+		char * UDP_TimeStamp = 0;
+		char * UDP_Gain = 0;
+
 		Xvel_mem = new char[4];
 		Yvel_mem = new char[4];
-		memcpy(Xvel_mem, buf + 197, 4);
-		memcpy(Yvel_mem, buf + 201, 4);
-		
+		UDP_TimeStamp = new char[4]; // 4 bytes stored as uint32 for clock
+		UDP_Gain = new char[4]; // 
+
+		memcpy(Xvel_mem, buf + 197, 4); // bytes 198 - 201
+		memcpy(Yvel_mem, buf + 201, 4); // bytes 202 - 205
+		memcpy(UDP_TimeStamp, buf, 4); //  bytes 1-4
+		memcpy(UDP_Gain, buf + 361, 4); // 362 - 365
 	
 		float * Xvel_f_ptr = (float *) Xvel_mem;
 		float * Yvel_f_ptr = (float *) Yvel_mem;
+		UINT32 * UDP_TimeStamp_ptr = (UINT32 *) UDP_TimeStamp;
+		float * UDP_Gain_ptr = (float *)UDP_Gain;
+	
+
 		//= (float)*Xvel_mem;
 		//float  Yvel_f_ptr = (float) *Yvel_mem;
 		p_sharedData->UDP_BG_VelX = *Xvel_f_ptr;
 		p_sharedData->UDP_BG_VelY = *Yvel_f_ptr;
+		p_sharedData->UDP_TStamp = *UDP_TimeStamp_ptr;
+		p_sharedData->UDP_BG_Gain = *UDP_Gain_ptr;
+
+		// Deadband s
+		if (p_sharedData->BG_Vel_Control_Mapping == UDP_BG_CONTROL_DIRECTION) {
+		//if ( (p_sharedData->BG_Vel_Control_Mapping == UDP_BG_CONTROL_DIRECTION) | (p_sharedData->BG_Vel_Control_Mapping == UDP_BG_CONTROL_NONLINEAR)) {
+			// 0.25*B*Gain for deadband Velocities
+			float Dead_Vel_Max = BETA_DEAD_SCALAR*BETA_PARAM*p_sharedData->UDP_BG_Gain;
+
+			// check if scaled commands exceed the maximums defined 
+			if ((-1 * Dead_Vel_Max < p_sharedData->UDP_BG_VelX) && (p_sharedData->UDP_BG_VelX < Dead_Vel_Max)) {
+				p_sharedData->UDP_BG_VelX = 0;
+			}
+			if ((-1 * Dead_Vel_Max < p_sharedData->UDP_BG_VelY) && (p_sharedData->UDP_BG_VelY < Dead_Vel_Max)) p_sharedData->UDP_BG_VelY = 0;
+			
+		}
+
+
+
+		// Deploy Saturation 
+
+		// rotate if needed
+
+
+
+
 
 //	printf("Xvel 0x%x 0x%x 0x%x 0x%x\n", (unsigned)(unsigned char)Xvel[0], (unsigned)(unsigned char)Xvel[1], (unsigned)(unsigned char)Xvel[2], (unsigned)(unsigned char)Xvel[3]);
 //	printf("Xmem 0x%x 0x%x 0x%x 0x%x\n", (unsigned)(unsigned char)Xvel_mem[0], (unsigned)(unsigned char)Xvel_mem[1], (unsigned)(unsigned char)Xvel_mem[2], (unsigned)(unsigned char)Xvel_mem[3]);

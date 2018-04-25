@@ -148,7 +148,7 @@ void initExperiment(void) {
     // generate filename and open file for writing
     sprintf(filename, "Subj_%d_Session_%d.dat", subjectNum, session);
     p_sharedData->outputFile = fopen(filename,"w");
-    fprintf(p_sharedData->outputFile, "blockNum, trialNum, cursorPosX, cursorPosY, cursorPosZ, cursorPosX_OneAgo, cursorPosY_OneAgo, cursorPosZ_OneAgo, cursorVelX, cursorVelY, cursorVelZ, inputPhantomPosX, inputPhantomPosY, inputPhantomPosZ, inputPhantomVelX, inputPhantomVelY, inputPhantomVelZ, inputPhantomSwitch, outputPhantomPosX, outputPhantomPosY, outputPhantomPosZ, outputPhantomVelX, outputPhantomVelY, outputPhantomVelZ, outputPhantomSwitch, outputPhantomForce_X, outputPhantomForce_Y, outputPhantomForce_Z, outputPhantomForce_Desired_X, outputPhantomForce_Desired_Y, outputPhantomForce_Desired_Z, outputPhantomForce_Desired_Tool_X, outputPhantomForce_Desired_Tool_Y, outputPhantomForce_Desired_Tool_Z, outputPhantomForce_Desired_Tool_angle_deg, Measured_Force_X, Measured_Force_Y, Measured_Force_Z, joystickPosX, joystickPosY, joystickSwitch, phantomLoopTimeStamp, joystickLoopTimeStamp, experimentLoopTimeStamp,recordTimeStamp, phantomLoopDelta, joystickLoopDelta, experimentLoopDelta, velocity_force_scalar, position_force_scalar, Fmax, velocity_MaxForce_scalar, BMI_command_update_time_MS, scaled_posX_command, scaled_posY_command, scaled_velX_command, scaled_velY_command, phantomFreq, joystickFreq, experimentFreq, timeElapsed, UDP_BG_VelX, UDP_BG_VelY\n");
+    fprintf(p_sharedData->outputFile, "blockNum, trialNum, cursorPosX, cursorPosY, cursorPosZ, cursorPosX_OneAgo, cursorPosY_OneAgo, cursorPosZ_OneAgo, cursorVelX, cursorVelY, cursorVelZ, inputPhantomPosX, inputPhantomPosY, inputPhantomPosZ, inputPhantomVelX, inputPhantomVelY, inputPhantomVelZ, inputPhantomSwitch, outputPhantomPosX, outputPhantomPosY, outputPhantomPosZ, outputPhantomVelX, outputPhantomVelY, outputPhantomVelZ, outputPhantomSwitch, outputPhantomForce_X, outputPhantomForce_Y, outputPhantomForce_Z, outputPhantomForce_Desired_X, outputPhantomForce_Desired_Y, outputPhantomForce_Desired_Z, outputPhantomForce_Desired_Tool_X, outputPhantomForce_Desired_Tool_Y, outputPhantomForce_Desired_Tool_Z, outputPhantomForce_Desired_Tool_angle_deg, Measured_Force_X, Measured_Force_Y, Measured_Force_Z, joystickPosX, joystickPosY, joystickSwitch, phantomLoopTimeStamp, joystickLoopTimeStamp, experimentLoopTimeStamp,recordTimeStamp, phantomLoopDelta, joystickLoopDelta, experimentLoopDelta, velocity_force_scalar, position_force_scalar, Fmax, velocity_MaxForce_scalar, BMI_command_update_time_MS, scaled_posX_command, scaled_posY_command, scaled_velX_command, scaled_velY_command, phantomFreq, joystickFreq, experimentFreq, timeElapsed, UDP_BG_VelX, UDP_BG_VelY, UDP_BG_Gain, UDP_TimeStamp\n");
     
     // enter start-up mode, with force feedback off for safety
    	p_sharedData->opMode = EXPERIMENT;
@@ -443,6 +443,147 @@ void updateExperiment(void) {
 					break;
 
 /*************************************************************************************************************************************************/
+/* TRACK T5 NONLINEAR SUB-STATE MACHINE *********************************************************************************************************/
+				case TRACK_T5_NONLINEAR:
+					// save one timestep
+					saveOneTimeStep();
+
+					//record one time step
+					recordTrial();
+
+					p_sharedData->experimentStateName = "TRACK T5 NONLINEAR";
+
+					if (1) {
+
+						float Velx = p_sharedData->UDP_BG_VelX;
+						float Vely = p_sharedData->UDP_BG_VelY;
+
+						//update current force to be output by BMI command updated at 1KHz;
+						p_sharedData->UDP_BG_velocity_to_force_scalar= p_sharedData->Fmax / (BETA_SAT*BETA_PARAM*p_sharedData->UDP_BG_Gain);
+						p_sharedData->scaled_velX_command = p_sharedData->UDP_BG_velocity_to_force_scalar*Velx;
+						p_sharedData->scaled_velY_command = p_sharedData->UDP_BG_velocity_to_force_scalar*Vely;
+
+						// check if scaled commands exceed the maximums defined 
+						if (p_sharedData->scaled_posX_command > p_sharedData->Fmax) p_sharedData->scaled_posX_command = p_sharedData->Fmax;
+						if (p_sharedData->scaled_posX_command < -1 * p_sharedData->Fmax) p_sharedData->scaled_posX_command = -1 * p_sharedData->Fmax;
+
+						if (p_sharedData->scaled_posY_command > p_sharedData->Fmax) p_sharedData->scaled_posY_command = p_sharedData->Fmax;
+						if (p_sharedData->scaled_posY_command < -1 * p_sharedData->Fmax) p_sharedData->scaled_posY_command = -1 * p_sharedData->Fmax;
+
+						if (p_sharedData->scaled_velX_command > p_sharedData->Fmax) p_sharedData->scaled_velX_command = p_sharedData->Fmax;
+						if (p_sharedData->scaled_velX_command < -1 * p_sharedData->Fmax) p_sharedData->scaled_velX_command = -1 * p_sharedData->Fmax;
+
+						if (p_sharedData->scaled_velY_command > p_sharedData->Fmax) p_sharedData->scaled_velY_command = p_sharedData->Fmax;
+						if (p_sharedData->scaled_velY_command < -1 * p_sharedData->Fmax) p_sharedData->scaled_velY_command = -1 * p_sharedData->Fmax;
+
+
+						// construct initial force vector to be rotated (in tool frame)
+						force_vector = cVector3d(p_sharedData->scaled_velY_command, -1*p_sharedData->scaled_velX_command, p_sharedData->outputNormalForce_Set);
+
+						// update desired tool forces
+						p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
+						p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
+						p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
+
+						// rotate tool to base frame
+						force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
+
+						// command desired forces to phantom
+						//send force to hapic device
+						p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
+						p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
+						p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
+					}
+					else // end of tracking
+					{
+						/*
+						// set all forces to zero
+						setOutputForceToZero();
+
+						// send to record
+						recordTrial();
+						// set/start timer (from zero) and begin block of trials
+						p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
+						p_sharedData->timer->start(true);
+						p_sharedData->experimentStateNumber = RECORD;
+						p_sharedData->nextExperimentStateNumber = THANKS;
+						*/
+					}
+					break;
+
+/*************************************************************************************************************************************************/
+/* TRACK BMI NONLINEAR SUB-STATE MACHINE *********************************************************************************************************/
+				case TRACK_T5_DIR:
+					// save one timestep
+					saveOneTimeStep();
+					recordTrial();
+
+					p_sharedData->experimentStateName = "Track T5 Direction";
+
+					if (1) {
+						float Velx = p_sharedData->UDP_BG_VelX;
+						float Vely = p_sharedData->UDP_BG_VelY;
+						//update current force to be output by BMI command updated at 1KHz
+						float V_mag = sqrt(((Velx) *(Velx)) + ((Vely)*(Vely)));
+						if (V_mag != 0) {
+							p_sharedData->velocity_MaxForce_scalar = p_sharedData->Fmax / V_mag;
+						}
+						else {
+							p_sharedData->velocity_MaxForce_scalar = 0;
+						}
+						p_sharedData->scaled_velX_command = Velx * p_sharedData->velocity_MaxForce_scalar;
+						p_sharedData->scaled_velY_command = Vely * p_sharedData->velocity_MaxForce_scalar;
+
+						// check if scaled commands exceed the maximums defined 
+						if (p_sharedData->scaled_posX_command > p_sharedData->Fmax) p_sharedData->scaled_posX_command = p_sharedData->Fmax;
+						if (p_sharedData->scaled_posX_command < -1 * p_sharedData->Fmax) p_sharedData->scaled_posX_command = -1 * p_sharedData->Fmax;
+
+						if (p_sharedData->scaled_posY_command > p_sharedData->Fmax) p_sharedData->scaled_posY_command = p_sharedData->Fmax;
+						if (p_sharedData->scaled_posY_command < -1 * p_sharedData->Fmax) p_sharedData->scaled_posY_command = -1 * p_sharedData->Fmax;
+
+						if (p_sharedData->scaled_velX_command > p_sharedData->Fmax) p_sharedData->scaled_velX_command = p_sharedData->Fmax;
+						if (p_sharedData->scaled_velX_command < -1 * p_sharedData->Fmax) p_sharedData->scaled_velX_command = -1 * p_sharedData->Fmax;
+
+						if (p_sharedData->scaled_velY_command > p_sharedData->Fmax) p_sharedData->scaled_velY_command = p_sharedData->Fmax;
+						if (p_sharedData->scaled_velY_command < -1 * p_sharedData->Fmax) p_sharedData->scaled_velY_command = -1 * p_sharedData->Fmax;
+
+
+						// construct initial force vector to be rotated (in tool frame)
+						force_vector = cVector3d(p_sharedData->scaled_velY_command, -1*p_sharedData->scaled_velX_command, p_sharedData->outputNormalForce_Set);
+
+						// update desired tool forces
+						p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
+						p_sharedData->outputPhantomForce_Desired_Tool_Y = force_vector.y();
+						p_sharedData->outputPhantomForce_Desired_Tool_Z = force_vector.z();
+
+						// rotate tool to base frame
+						force_vector = Rotate_Tool_to_Base_Frame(force_vector, p_sharedData->outputPhantomRotation);
+
+						// command desired forces to phantom
+						//send force to hapic device
+						p_sharedData->outputPhantomForce_Desired_X = force_vector.x();
+						p_sharedData->outputPhantomForce_Desired_Y = force_vector.y();
+						p_sharedData->outputPhantomForce_Desired_Z = force_vector.z();
+					}
+					else // end of tracking
+					{
+						/*
+						// set all forces to zero
+						setOutputForceToZero();
+
+						// send to record
+						recordTrial();
+						// set/start timer (from zero) and begin block of trials
+						p_sharedData->timer->setTimeoutPeriodSeconds(recordTime);
+						p_sharedData->timer->start(true);
+						p_sharedData->experimentStateNumber = RECORD;
+						p_sharedData->nextExperimentStateNumber = THANKS;
+						*/
+					}
+					break;
+
+
+/*************************************************************************************************************************************************/
 /* IDLE STATE ************************************************************************************************************************************/
 				case IDLE:
 					p_sharedData->experimentStateName = "IDLE";
@@ -509,7 +650,23 @@ void updateExperiment(void) {
 							p_sharedData->timer->start(true);
 
 							break;
+
+
+						case TRACK_T5_DIR:
+
+
+							break;
+
+
+						case TRACK_T5_NONLINEAR:
+
+
+							break;
+
 						}
+
+
+
 						p_sharedData->experimentStateNumber = p_sharedData->nextExperimentStateNumber;
 
 					}

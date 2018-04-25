@@ -19,6 +19,8 @@ void linkSharedDataToUDP_BG(shared_data& sharedData);
 void initUDP_BG(void);
 void updateUDP_BG(void);
 void closeUDP_BG(void);
+void convert_UDP_Vel_To_Control(void);
+
 
 int udpsock(int port, const char* addr);
 int recvudp(int sock, const int size, sockaddr_in& SenderAddr, int& SenderAddrSize);
