@@ -21,7 +21,8 @@ using namespace std;
 // UDP Setup
 #define PORT 50114 // 
 //#define IP "192.168.30.4"
-#define IP "192.168.30.197" // Always want to use my computer's IP address for IPV4
+//#define IP "192.168.30.197" // Always want to use my computer's IP address for IPV4 Newest
+#define IP "192.168.30.18"
 #define UDP_Packet_Length  403
 #define MAX_MSG 381
 
@@ -57,7 +58,7 @@ using namespace std;
 #define BETA_SAT 0.5
 #define BETA_DEAD_SCALAR 0.2
 #define BETA_PARAM_DIVIDER 2
-# define DIRECTION_SHEAR_MAX 0.4
+# define DIRECTION_SHEAR_MAX 0.5
 
 
 

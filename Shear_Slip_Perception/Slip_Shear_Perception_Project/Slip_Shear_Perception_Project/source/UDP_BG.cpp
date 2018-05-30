@@ -61,7 +61,7 @@ void initUDP_BG(void) {
 	{
 
 		printf(" Unable to create a socket \n");
-		printf(" Failed with error : %d\n", WSAGetLastError());
+		//printf(" Failed with error : %d\n", WSAGetLastError());
 
 
 	}
@@ -73,7 +73,7 @@ void initUDP_BG(void) {
 	if (bind(s, (struct sockaddr *)&serverAddress, sizeof(serverAddress)) < 0)
 	{
 		printf(" Unable to bind socket \n");
-		printf(" Failed with error : %d\n", WSAGetLastError());
+		//printf(" Failed with error : %d\n", WSAGetLastError());
 
 	}
 	else
@@ -223,7 +223,7 @@ int recvudp(int sock, const int size, sockaddr_in& SenderAddr, int& SenderAddrSi
 		p_sharedData->UDP_BG_VelX = *Xvel_f_ptr;
 		p_sharedData->UDP_BG_VelY = *Yvel_f_ptr;
 		p_sharedData->UDP_TStamp = *UDP_TimeStamp_ptr;
-		p_sharedData->UDP_BG_Gain = *UDP_Gain_ptr;
+		p_sharedData->UDP_BG_Gain = 5000; //*UDP_Gain_ptr;
 
 		// Deadband s
 		if (p_sharedData->BG_Vel_Control_Mapping == UDP_BG_CONTROL_DIRECTION) {
@@ -255,7 +255,7 @@ int recvudp(int sock, const int size, sockaddr_in& SenderAddr, int& SenderAddrSi
 	//printf("HERE\n");
 	if (retsize == -1)
 	{
-		cout << "\nRecv Error : " << WSAGetLastError();
+		//cout << "\nRecv Error : " << WSAGetLastError();
 
 		if (WSAGetLastError() == WSAEWOULDBLOCK || WSAGetLastError() == 0)
 		{

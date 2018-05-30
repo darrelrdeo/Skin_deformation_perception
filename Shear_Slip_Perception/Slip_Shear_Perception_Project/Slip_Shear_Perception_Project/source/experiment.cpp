@@ -478,7 +478,7 @@ void updateExperiment(void) {
 
 
 						// construct initial force vector to be rotated (in tool frame)
-						force_vector = cVector3d(p_sharedData->scaled_velY_command, -1*p_sharedData->scaled_velX_command, p_sharedData->outputNormalForce_Set);
+						force_vector = cVector3d(-1*p_sharedData->scaled_velY_command, -1*p_sharedData->scaled_velX_command, p_sharedData->outputNormalForce_Set);
 
 						// update desired tool forces
 						p_sharedData->outputPhantomForce_Desired_Tool_X = force_vector.x();
