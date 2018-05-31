@@ -311,6 +311,12 @@ __pycache__/
 *.odx.cs
 *.xsd.cs
 
+#dat files
+.dat
+
+#zip files
+.zip
+
 # OpenCover UI analysis results
 OpenCover/
 
